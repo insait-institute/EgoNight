@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" href="fig/icon.png">
+<style>html,body{margin:0}img{max-width:100%}</style>
+<title>EgoNight Talk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* One 1600x900 stage scaled to the window. A night palette: moonlight blue for night,
+   sodium-lamp amber for day, so every day/night comparison reads the same way. */
+:root{
+  color-scheme: dark;
+  --page:#04060d;
+  --bg:#080c18;
+  --panel:#0e1527;
+  --panel-2:#141d35;
+  --line:#1c2742;
+  --line-2:#2a3858;
+  --fg:#eef1fa;
+  --muted:#a7b0c8;
+  --dim:#717c99;
+  --moon:#9bb0ff;
+  --moon-2:#c9d4ff;
+  --sun:#ffb84d;
+  --sun-2:#ffd994;
+  --drop:#ff8f7e;
+  --closed:#ff9e6e;
+  --open:#8fb0ff;
+  --ego:#5fd6c2;
+  --paper:#ffffff;
+  --f-display:"Bricolage Grotesque","Inter",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+[hidden]{display:none !important}
+html,body{height:100%}
+body{background:var(--page);color:var(--fg);font-family:var(--f-body);overflow:hidden;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0}
+#viewport{position:relative;height:100%;overflow:hidden;background:var(--page)}
+#viewport:fullscreen{padding:0}
+#stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform-origin:50% 50%;overflow:hidden;border-radius:6px;
+  background:radial-gradient(1100px 620px at 92% -12%, rgba(155,176,255,.13), transparent 62%),
+    radial-gradient(900px 520px at -6% 112%, rgba(255,184,77,.08), transparent 60%), var(--bg)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;padding:52px 80px 92px;display:flex;flex-direction:column;gap:26px;
+  opacity:0;visibility:hidden;transform:translateX(44px);
+  transition:opacity .5s ease, transform .7s cubic-bezier(.2,.7,.2,1), visibility 0s linear .7s}
+.slide.past{transform:translateX(-44px)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .5s ease, transform .7s cubic-bezier(.2,.7,.2,1), visibility 0s}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex:none}
+.hd .t{display:flex;flex-direction:column;gap:10px;min-width:0}
+h1,h2,h3,p{margin:0}
+h2{font:700 48px/1.05 var(--f-display);letter-spacing:-.015em;text-wrap:balance;display:flex;align-items:center;gap:16px}
+h2 img{width:46px;height:46px;flex:none}
+h3{font:600 23px/1.3 var(--f-body)}
+.lede{font-size:21px;line-height:1.5;color:var(--muted);max-width:1180px;text-wrap:pretty}
+.body{flex:1;min-height:0;display:grid;gap:40px}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.small{font-size:18px;line-height:1.55;color:var(--muted)}
+.cap{font:400 15px/1.5 var(--f-mono);color:var(--dim)}
+b,strong{font-weight:600;color:var(--fg)}
+.sun{color:var(--sun)}.moon{color:var(--moon)}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.paper{background:var(--paper);border-radius:14px;padding:14px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.paper img{display:block;width:100%;height:auto;border-radius:6px}
+.zoomable{cursor:zoom-in}
+ul.pts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+ul.pts li{position:relative;padding-left:28px;font-size:20px;line-height:1.5;color:var(--muted)}
+ul.pts li::before{content:"";position:absolute;left:2px;top:.55em;width:11px;height:11px;border-radius:50%;
+  background:linear-gradient(90deg,var(--sun) 50%,var(--moon) 50%)}
+ul.pts li b{color:var(--fg)}
+
+/* builds */
+.slide [data-s]{opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .6s cubic-bezier(.2,.7,.2,1)}
+.slide [data-s].on{opacity:1;transform:none}
+.slide.active .rise{animation:rise .75s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0) * 90ms)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+
+/* controls */
+.ctrl{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:11px;overflow:hidden;background:var(--panel)}
+.seg button{font:500 16px/1 var(--f-body);color:var(--muted);background:transparent;border:0;padding:10px 15px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--moon)}
+.seg button:hover{color:var(--fg)}
+.seg button:disabled{opacity:.35;cursor:default}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--moon);outline-offset:2px}
+.btn{font:500 15px/1 var(--f-mono);color:var(--muted);background:transparent;border:1px solid var(--line-2);border-radius:9px;padding:9px 13px;cursor:pointer}
+.btn:hover{color:var(--fg);border-color:var(--dim)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:16px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;background:currentColor}
+.legend i.hatch{background:repeating-linear-gradient(45deg,currentColor 0 2px,transparent 2px 5px);outline:1.5px solid currentColor;outline-offset:-1.5px}
+
+/* charts */
+svg.chart{width:100%;height:auto;display:block;overflow:visible}
+svg.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:15px}
+svg.chart text.lab{fill:var(--fg);font-family:var(--f-body);font-size:16px;font-weight:500}
+svg.chart text.val{fill:var(--fg);font-size:14px}
+svg.chart text.dl{fill:var(--drop);font-size:14px}
+svg.chart .grid line{stroke:var(--line);stroke-width:1}
+.gy{transform-box:fill-box;transform-origin:center bottom;animation:gy .9s cubic-bezier(.2,.7,.2,1) both}
+.gx{transform-box:fill-box;transform-origin:left center;animation:gx .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes gy{from{transform:scaleY(0)}}
+@keyframes gx{from{transform:scaleX(0)}}
+.fadein{animation:fadein .7s ease both}
+@keyframes fadein{from{opacity:0}}
+
+/* day / night wipe: one stacked video (day on top, night below) drawn onto a canvas */
+.wipe{position:relative;overflow:hidden;border-radius:16px;border:1px solid var(--line-2);background:#000;--x:50%;touch-action:none;cursor:ew-resize;
+  box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.wipe canvas{display:block;width:100%;height:100%}
+.wipe video{position:absolute;width:2px;height:2px;opacity:0;pointer-events:none;left:0;top:0}
+.wipe .bar{position:absolute;top:0;bottom:0;left:var(--x);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 14px rgba(255,255,255,.7);pointer-events:none}
+.wipe .knob{position:absolute;top:50%;left:var(--x);width:42px;height:42px;margin:-21px 0 0 -21px;border-radius:50%;
+  background:linear-gradient(90deg,var(--sun) 50%,var(--moon) 50%);border:3px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.wipe .tag{position:absolute;top:14px;font:600 14px/1 var(--f-mono);letter-spacing:.14em;padding:8px 11px;border-radius:8px;background:rgba(4,6,13,.72);pointer-events:none}
+.wipe .tag.d{left:14px;color:var(--sun)}.wipe .tag.n{right:14px;color:var(--moon)}
+
+/* chrome */
+#chrome{position:absolute;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;gap:14px;padding:0 28px 0 80px;z-index:20;
+  font:500 15px var(--f-mono);color:var(--dim)}
+#prog{position:absolute;left:0;top:0;height:2px;background:linear-gradient(90deg,var(--sun),var(--moon));width:0;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+#chrome .sp{flex:1}
+#count{color:var(--muted);min-width:84px;text-align:right}
+#toc{position:absolute;inset:0;z-index:40;background:rgba(4,6,13,.95);padding:64px 80px;display:flex;flex-direction:column;gap:28px}
+#toc h3{font:700 34px var(--f-display)}
+#toc ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 24px}
+#toc button{width:100%;text-align:left;font:500 19px/1.4 var(--f-body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;cursor:pointer;display:flex;gap:14px}
+#toc button span.n{font-family:var(--f-mono);color:var(--moon);min-width:28px}
+#toc button:hover{border-color:var(--moon)}
+#zoom{position:absolute;inset:0;z-index:45;background:rgba(4,6,13,.94);display:grid;place-items:center;padding:40px 60px 80px;cursor:zoom-out}
+#zoom .paper{max-width:100%;max-height:100%;display:flex}
+#zoom img{max-width:1440px;max-height:740px;width:auto;height:auto;object-fit:contain}
+
+/* cover */
+#cover{padding:0}
+#cv-cover{position:absolute;inset:0;width:1600px;height:900px}
+.cover-in{position:absolute;left:88px;top:92px;width:800px;display:flex;flex-direction:column;gap:20px}
+.venue{align-self:flex-start;font:600 16px/1 var(--f-mono);letter-spacing:.12em;color:#1a1300;background:var(--sun);padding:9px 13px;border-radius:8px}
+.cover-in h1{font:800 132px/.9 var(--f-display);letter-spacing:-.03em;display:flex;align-items:center;gap:26px}
+.cover-in h1 img{width:124px;height:124px;flex:none;filter:drop-shadow(0 0 30px rgba(155,176,255,.35))}
+.cover-in h1 .e{color:var(--sun-2)}.cover-in h1 .n{color:var(--moon-2)}
+.cover-sub{font:500 27px/1.35 var(--f-body);color:var(--fg);max-width:780px;text-wrap:balance}
+.authors{font-size:18px;line-height:1.6;color:var(--muted)}
+.authors sup{font-size:.7em;color:var(--dim)}
+.affil{font:400 15px/1.6 var(--f-mono);color:var(--dim)}
+.inst{align-self:flex-start;background:var(--paper);border-radius:12px;padding:10px 16px;width:600px}
+.inst img{display:block;width:100%;height:auto}
+.cover-wipe{position:absolute;right:80px;top:150px;width:600px;height:450px}
+.cover-wipe-cap{position:absolute;right:80px;top:614px;width:600px;text-align:right}
+.hint{position:absolute;left:88px;bottom:72px;font:400 15px var(--f-mono);color:var(--dim)}
+
+/* overview */
+#overview .body{grid-template-columns:960px 1fr;align-items:start}
+.stats{display:grid;grid-template-columns:1fr;gap:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 20px;display:flex;flex-direction:column;gap:4px}
+.stat .v{font:800 52px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums;
+  background:linear-gradient(90deg,var(--sun-2),var(--moon-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .k{font-size:17px;color:var(--muted)}
+.subsets{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;font:500 16px/1 var(--f-body);color:var(--fg);background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:8px 12px}
+.chip img{width:22px;height:22px}
+
+/* aligned */
+#aligned .body{grid-template-columns:720px 1fr;align-items:start}
+#aligned .wipe{width:720px;height:540px}
+
+/* pipeline */
+#pipeline .body{grid-template-columns:1000px 1fr;grid-template-rows:auto auto;row-gap:26px;align-content:start}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:grid;grid-template-columns:40px 1fr;gap:4px 14px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
+.step .n{grid-row:span 2;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font:700 18px var(--f-mono);color:#0b1020;background:var(--moon)}
+.step h3{font-size:19px}
+.step p{font-size:16px;line-height:1.45;color:var(--muted)}
+.qgroups{grid-column:1 / -1;display:grid;grid-template-columns:1.9fr 1fr;gap:24px}
+.qg{display:flex;flex-direction:column;gap:10px}
+.qg h3{font-size:19px;display:flex;align-items:baseline;gap:10px}
+.qg h3 span{font:400 15px var(--f-body);color:var(--dim)}
+.qg .chips{display:flex;flex-wrap:wrap;gap:8px}
+.qg .chip{font-size:15px;padding:7px 11px}
+.qg.unp .chip{border-color:rgba(155,176,255,.45);color:var(--moon-2)}
+
+/* dataset */
+#dataset .body{grid-template-rows:auto auto;gap:34px;align-content:center}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.c3{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 22px;display:flex;flex-direction:column;gap:6px}
+.c3 .n{font:700 16px var(--f-mono);color:var(--sun)}
+.c3 p{font-size:17px;line-height:1.5;color:var(--muted)}
+.ds-row{display:grid;grid-template-columns:580px 1fr;gap:36px;align-items:center}
+table.glance{width:100%;border-collapse:collapse;font-size:17px}
+table.glance td,table.glance th{white-space:nowrap}
+table.glance th{text-align:left;font:500 14px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:0 10px 10px 0;border-bottom:1px solid var(--line-2)}
+table.glance td{padding:13px 10px 13px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+table.glance td.sub{display:flex;align-items:center;gap:10px;font-weight:600}
+table.glance td.sub img{width:26px;height:26px}
+table.glance .vb{display:flex;align-items:center;gap:10px}
+table.glance .vb i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--sun),var(--moon));transform-origin:left;animation:gx 1s cubic-bezier(.2,.7,.2,1) both}
+table.glance td.src{color:var(--muted);font-size:16px}
+
+/* qa types */
+.qa-tabs{display:flex;flex-direction:column;gap:10px}
+.qa-row{display:flex;align-items:center;gap:12px}
+.qa-row .lbl{font:500 13px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);width:136px;flex:none;white-space:nowrap}
+.qa-row .chips{display:flex;flex-wrap:wrap;gap:8px}
+.qa-row button{font:500 14px/1 var(--f-body);color:var(--muted);background:var(--panel);border:1px solid var(--line-2);border-radius:999px;padding:8px 11px;cursor:pointer}
+.qa-row button:hover{color:var(--fg)}
+.qa-row button[aria-pressed="true"]{color:#0b1020;background:var(--sun-2);border-color:var(--sun-2)}
+.qa-row.unp button[aria-pressed="true"]{background:var(--moon-2);border-color:var(--moon-2)}
+.spot{position:relative;width:1360px;align-self:center;background:var(--paper);border-radius:14px;padding:0;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.spot img{display:block;width:100%;height:auto}
+.spot .cell{position:absolute;background:rgba(4,6,13,.62);transition:background .35s ease, box-shadow .35s ease;border-radius:4px;cursor:pointer}
+.spot .cell.on{background:rgba(4,6,13,0);box-shadow:0 0 0 3px var(--sun),0 0 26px rgba(255,184,77,.55)}
+.spot.unp .cell.on{box-shadow:0 0 0 3px var(--moon),0 0 26px rgba(155,176,255,.6)}
+
+/* leaderboard */
+#leaderboard .body{grid-template-columns:1fr 400px;align-items:start}
+.lb{position:relative}
+.lb-row{position:absolute;left:0;right:0;height:44px;display:grid;grid-template-columns:250px 1fr 70px;align-items:center;gap:14px;transition:top .7s cubic-bezier(.2,.7,.2,1)}
+.lb-row .nm{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:500;white-space:nowrap}
+.lb-row .nm img{width:24px;height:24px;border-radius:5px;object-fit:contain;background:#fff;padding:1px}
+.lb-row .tr{position:relative;height:26px;border-radius:7px;background:repeating-linear-gradient(90deg,transparent 0 calc(22.222% - 1px),var(--line) calc(22.222% - 1px) 22.222%)}
+.lb-row .fl{position:absolute;left:0;top:0;bottom:0;border-radius:7px;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.lb-row .v{font:500 17px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.lb-row.closed .fl{background:linear-gradient(90deg,rgba(255,158,110,.35),var(--closed))}
+.lb-row.open .fl{background:linear-gradient(90deg,rgba(143,176,255,.3),var(--open))}
+.lb-row.ego .fl{background:linear-gradient(90deg,rgba(95,214,194,.3),var(--ego))}
+.lb-axis{position:absolute;left:264px;right:84px;bottom:-28px;height:20px;font:400 13px var(--f-mono);color:var(--dim)}
+.lb-axis span{position:absolute;transform:translateX(-50%)}
+.obs{display:flex;flex-direction:column;gap:14px}
+.obs .card p{font-size:17px;line-height:1.5;color:var(--muted)}
+.obs .big{font:800 40px/1 var(--f-display);margin-bottom:6px}
+
+/* gap */
+#gap .body{grid-template-columns:1fr 360px;align-items:start}
+
+/* depth, retrieval */
+.two{grid-template-columns:760px 1fr;align-items:center;align-content:center}
+
+/* finetune */
+#finetune .body{grid-template-columns:780px 1fr;align-items:start}
+.ft{display:flex;flex-direction:column;gap:16px}
+.ft h3 span{font:400 15px var(--f-mono);color:var(--dim);margin-left:10px}
+.vbars{display:flex;align-items:flex-end;gap:22px;height:220px;padding:0 4px;border-bottom:1px solid var(--line-2)}
+.vbars.short{height:140px}
+.vb2{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;height:100%}
+.vb2 .v{font:600 20px var(--f-mono);font-variant-numeric:tabular-nums}
+.vb2 .b{width:100%;border-radius:10px 10px 0 0;background:linear-gradient(180deg,var(--moon),rgba(155,176,255,.35));transform-origin:bottom;animation:gy 1s cubic-bezier(.2,.7,.2,1) both}
+.vb2.best .b{background:linear-gradient(180deg,var(--sun),rgba(255,184,77,.4))}
+.vb2.base .b{background:linear-gradient(180deg,#58617c,#2a3149)}
+.vlab{display:flex;gap:22px;padding:0 4px}
+.vlab div{flex:1;text-align:center;font-size:15px;line-height:1.35;color:var(--muted)}
+.vlab b{display:block;color:var(--fg);font-weight:600}
+.ins{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ins .card{display:flex;flex-direction:column;gap:8px}
+.ins .n{font:700 15px var(--f-mono);color:var(--sun)}
+.ins p{font-size:16px;line-height:1.5;color:var(--muted)}
+
+/* takeaway */
+#takeaway .body{grid-template-columns:1fr 500px;align-items:start}
+.claim{font:600 28px/1.4 var(--f-body);padding:26px 30px;border-radius:18px;background:linear-gradient(135deg,rgba(255,184,77,.13),rgba(155,176,255,.12));border:1px solid var(--line-2)}
+.claim em{font-style:normal;color:var(--sun-2)}
+.tk{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.tk .row{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start}
+.tk .row .n{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font:700 20px var(--f-mono);color:#0b1020;background:var(--moon)}
+.tk .row p{font-size:19px;line-height:1.5;color:var(--muted)}
+.tk .row p b{color:var(--fg)}
+.fut{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.fut li{font-size:18px;line-height:1.45;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:flex;gap:12px;align-items:baseline}
+.fut li::before{content:"→";color:var(--sun);font-family:var(--f-mono)}
+
+/* acknowledgement */
+#ack .body{grid-template-rows:auto auto;gap:40px;align-content:center}
+.logos{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.logo{background:var(--paper);border-radius:18px;height:210px;display:grid;place-items:center;padding:26px}
+.logo img{max-width:100%;max-height:150px;object-fit:contain}
+
+/* contact */
+#contact .body{grid-template-columns:380px 1fr;align-items:center;gap:64px}
+#contact .ph{width:380px;height:380px;border-radius:24px;object-fit:cover;box-shadow:0 0 0 6px rgba(155,176,255,.18),0 24px 60px rgba(0,0,0,.5)}
+.thanks{font:800 156px/.95 var(--f-display);letter-spacing:-.03em;background:linear-gradient(90deg,var(--sun-2),var(--moon-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mail{font:500 30px var(--f-mono);color:var(--fg);user-select:all}
+.links{display:flex;flex-wrap:wrap;gap:12px}
+.links a{font:500 17px/1 var(--f-body);color:var(--fg);text-decoration:none;background:var(--panel);border:1px solid var(--line-2);border-radius:999px;padding:12px 18px}
+.links a:hover{border-color:var(--moon)}
+
+@media (prefers-reduced-motion: reduce){
+  .slide,.slide.active{transition:none}
+  .slide.active .rise,.gy,.gx,.fadein,.vb2 .b,table.glance .vb i{animation:none}
+  .lb-row,.lb-row .fl{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ============ 1 COVER ============ -->
+<section class="slide" id="cover" data-title="Cover" data-sec="EgoNight">
+  <canvas id="cv-cover" width="1600" height="900" aria-hidden="true"></canvas>
+  <div class="cover-in">
+    <span class="venue rise">ICLR 2026</span>
+    <h1 class="rise" style="--d:1"><img src="fig/icon.png" alt=""><span><span class="e">Ego</span><span class="n">Night</span></span></h1>
+    <p class="cover-sub rise" style="--d:2">Towards Egocentric Vision Understanding at Night with a Challenging Benchmark</p>
+    <p class="authors rise" style="--d:3">Deheng Zhang<sup>1*</sup>, Yuqian Fu<sup>1*†</sup>, Runyi Yang<sup>1</sup>, Yang Miao<sup>1</sup>, Tianwen Qian<sup>2</sup>, Xu Zheng<sup>1,3</sup>, Guolei Sun<sup>4</sup>, Ajad Chhatkuli<sup>1</sup>, Xuanjing Huang<sup>5</sup>, Yu-Gang Jiang<sup>5</sup>, Luc Van Gool<sup>1</sup>, Danda Pani Paudel<sup>1</sup></p>
+    <p class="affil rise" style="--d:4"><sup>1</sup>INSAIT, Sofia University &nbsp; <sup>2</sup>East China Normal University &nbsp; <sup>3</sup>HKUST(GZ) &nbsp; <sup>4</sup>Nankai University &nbsp; <sup>5</sup>Fudan University &nbsp;·&nbsp; *equal contribution &nbsp;†corresponding author</p>
+    <div class="inst rise" style="--d:5"><img src="fig/institute.png" alt="INSAIT, Fudan University, East China Normal University, HKUST(GZ) and Nankai University"></div>
+  </div>
+  <div class="wipe cover-wipe rise" style="--d:3" data-clip="cathedral" role="group" aria-label="Alexander Nevsky Cathedral, Sofia: day and night"></div>
+  <p class="cap cover-wipe-cap rise" style="--d:4">Alexander Nevsky Cathedral, Sofia: the same walk by day and by night. Drag to compare.</p>
+  <p class="hint">→ / Space: next &nbsp; ← back &nbsp; F: fullscreen &nbsp; O: contents</p>
+</section>
+
+<!-- ============ 2 OVERVIEW ============ -->
+<section class="slide" id="overview" data-title="Overview" data-sec="Benchmark">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Overview</h2>
+    <p class="lede">Existing egocentric benchmarks focus on daytime. EgoNight asks how today's multimodal LLMs cope when the lights go out, with day–night aligned videos and question answering on both.</p></div></header>
+  <div class="body">
+    <figure class="paper rise" style="margin:0;--d:1"><img class="zoomable" src="fig/teaser_v3.png" alt="EgoNight overview: data sources, VQA tasks, other tasks and day/night question-answer examples"></figure>
+    <div class="col">
+      <div class="stats">
+        <div class="stat rise" style="--d:2"><span class="v num" data-count="160">160</span><span class="k">videos, from simulation and the real world</span></div>
+        <div class="stat rise" style="--d:3"><span class="v num" data-count="70">70</span><span class="k">day–night aligned video pairs</span></div>
+        <div class="stat rise" style="--d:4"><span class="v num" data-count="3658">3,658</span><span class="k">human-verified QA pairs</span></div>
+        <div class="stat rise" style="--d:5"><span class="v num" data-count="12">12</span><span class="k">question types, plus depth and retrieval</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 ALIGNED ============ -->
+<section class="slide" id="aligned" data-title="Why day–night alignment" data-sec="Data">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Why day–night alignment</h2>
+    <p class="lede">At night, people and GPT alike struggle to write good question–answer pairs. So each Synthetic and Sofia night video has a daytime twin, and answers are written with the day video in view.</p></div></header>
+  <div class="body">
+    <div class="col">
+      <div class="ctrl ix"><div class="seg" id="al-clips" role="group" aria-label="clip"></div></div>
+      <div class="wipe" id="al-wipe" role="group" aria-label="Day and night versions of the same clip"></div>
+    </div>
+    <div class="col" style="padding-top:62px">
+      <ul class="pts">
+        <li class="rise" style="--d:1"><b>Same route, same actions,</b> aligned in time. Drag the divider to compare.</li>
+        <li class="rise" style="--d:2"><b>EgoNight-Synthetic:</b> one Infinigen scene rendered in Blender twice, with the lighting edited for night.</li>
+        <li class="rise" style="--d:3"><b>EgoNight-Sofia:</b> each route is recorded by day, re-recorded at night with the day video as reference, then trimmed to match.</li>
+        <li class="rise" style="--d:4"><b>EgoNight-Oxford:</b> night-only clips selected from Oxford Day-and-Night.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 PIPELINE ============ -->
+<section class="slide" id="pipeline" data-steps="4" data-title="Annotation pipeline" data-sec="Data">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Annotation Pipeline</h2></div></header>
+  <div class="body">
+    <figure class="paper rise" style="margin:0;--d:1"><img class="zoomable" src="fig/main_pipeline.png" alt="Data collection for the three subsets, then nighttime captioning, question generation, day-augmented answer synthesis and human refinement"></figure>
+    <div class="steps">
+      <div class="step" data-s="1"><span class="n">1</span><h3>Nighttime Captioning</h3><p>GPT-4.1 generates scene descriptions from nighttime clips.</p></div>
+      <div class="step" data-s="2"><span class="n">2</span><h3>Question Generation</h3><p>Diverse candidate QA pairs created per task type.</p></div>
+      <div class="step" data-s="3"><span class="n">3</span><h3>Day-Augmented Answer Synthesis</h3><p>The daytime reference is used to improve answer accuracy.</p></div>
+      <div class="step" data-s="4"><span class="n">4</span><h3>Human Refinement</h3><p>All 3,658 pairs manually verified and refined (300+ hours).</p></div>
+    </div>
+    <div class="qgroups">
+      <div class="qg rise" style="--d:2"><h3>Paired QA types (8)<span>the same question is asked on the day and the night video</span></h3>
+        <div class="chips"><span class="chip">Object Recognition</span><span class="chip">Text Recognition</span><span class="chip">Spatial Reasoning</span><span class="chip">Scene Sequence</span><span class="chip">Navigation</span><span class="chip">Counting of Static</span><span class="chip">Action Recognition</span><span class="chip">Non-Common-Sense Reasoning</span></div></div>
+      <div class="qg unp rise" style="--d:3"><h3>Unpaired QA types (4)<span>night-specific, or impractical to pair</span></h3>
+        <div class="chips"><span class="chip">Lighting Recognition</span><span class="chip">Lighting Dynamic</span><span class="chip">Dynamic Detection</span><span class="chip">Counting of Dynamic</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 DATASET ============ -->
+<section class="slide" id="dataset" data-title="Dataset info" data-sec="Data">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Dataset Info</h2></div></header>
+  <div class="body">
+    <div class="cards3">
+      <div class="c3 rise" style="--d:1"><span class="n">01</span><h3>EgoNight Dataset</h3><p>160 videos, 70 day–night aligned pairs, combining synthetic and real-world sources.</p></div>
+      <div class="c3 rise" style="--d:2"><span class="n">02</span><h3>EgoNight-VQA</h3><p>3,658 human-verified QA pairs across 12 diverse question types.</p></div>
+      <div class="c3 rise" style="--d:3"><span class="n">03</span><h3>Empirical Evaluation</h3><p>Benchmarking of 10+ MLLMs reveals significant day–night performance gaps.</p></div>
+    </div>
+    <div class="ds-row">
+      <div class="col rise" style="--d:3">
+        <h3>Dataset at a glance</h3>
+        <table class="glance">
+          <thead><tr><th>Subset</th><th>Videos</th><th>Day–night</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td class="sub"><img src="fig/game-console.png" alt="">Synthetic</td><td><span class="vb"><span class="num">100</span><i style="width:80px"></i></span></td><td>50 pairs</td><td class="src">Blender + Infinigen</td></tr>
+            <tr><td class="sub"><img src="fig/alexander-nevsky-cathedral.png" alt="">Sofia</td><td><span class="vb"><span class="num">40</span><i style="width:32px;animation-delay:.1s"></i></span></td><td>20 pairs</td><td class="src">Real world, Sofia</td></tr>
+            <tr><td class="sub"><img src="fig/oxford.png" alt="">Oxford</td><td><span class="vb"><span class="num">20</span><i style="width:16px;animation-delay:.2s"></i></span></td><td>night only</td><td class="src">Oxford Day-and-Night</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="paper rise" style="margin:0;--d:4"><img class="zoomable" src="fig/statistics.png" alt="Dataset statistics: number of QA pairs, video duration, difficulty level, scenarios and light sources"></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 QA TYPES ============ -->
+<section class="slide" id="qatypes" data-title="12 question types" data-sec="Data">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Dataset Info: 12 Question Types</h2>
+    <p class="lede">Perception types (object, text, scene sequence) and reasoning types (navigation, counting, non-common-sense). Lighting recognition, lighting dynamic and non-common-sense are new question types.</p></div></header>
+  <div class="qa-tabs ix" id="qa-tabs"></div>
+  <div class="spot rise" id="qa-spot" style="--d:1"><img src="fig/data_collection_v2.png" alt="One example question and answer for each of the 12 question types, with day and night frames"></div>
+</section>
+
+<!-- ============ 7 LEADERBOARD ============ -->
+<section class="slide" id="leaderboard" data-title="VQA leaderboard" data-sec="Results">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">VQA Benchmark</h2>
+    <p class="lede">Open-ended QA accuracy (%) on night videos, for each subset and difficulty level.</p></div></header>
+  <div class="body">
+    <div class="col">
+      <div class="ctrl ix"><div class="seg" id="lb-sub" role="group" aria-label="subset"></div><div class="seg" id="lb-diff" role="group" aria-label="difficulty"></div></div>
+      <div class="legend"><span style="color:var(--closed)"><i></i><span style="color:var(--muted)">closed-source</span></span><span style="color:var(--open)"><i></i><span style="color:var(--muted)">open-source</span></span><span style="color:var(--ego)"><i></i><span style="color:var(--muted)">egocentric</span></span></div>
+      <div class="lb" id="lb" aria-live="polite"></div>
+    </div>
+    <div class="obs">
+      <p class="cap">Overall scores</p>
+      <div class="card rise" style="--d:1"><div class="big sun num">30.9</div><p><b>GPT-4.1</b> leads overall, with Gemini 2.5 Pro at 30.6: both closed-source models are ahead of every open model overall.</p></div>
+      <div class="card rise" style="--d:2"><div class="big moon num">20.1</div><p><b>InternVL3-8B</b> is the best open-source model, above the 72B Qwen2.5-VL (19.0).</p></div>
+      <div class="card rise" style="--d:3"><div class="big num" style="color:var(--ego)">14.3</div><p><b>EgoGPT</b>, built for egocentric video, scores 14.3 overall, well below the best open model.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8 GAP ============ -->
+<section class="slide" id="gap" data-title="Day–night gap" data-sec="Results">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">VQA Benchmark: Day vs Night</h2>
+    <p class="lede">Accuracy (%) on the paired question types, asked on the day video and on its aligned night video.</p></div></header>
+  <div class="body">
+    <div class="col">
+      <div class="ctrl ix"><div class="seg" id="gap-set" role="group" aria-label="subset"></div>
+        <div class="legend" style="margin-left:12px"><span style="color:var(--sun)"><i class="hatch"></i><span style="color:var(--muted)">day</span></span><span style="color:var(--moon)"><i></i><span style="color:var(--muted)">night</span></span><span style="color:var(--drop)"><span class="mono" style="font-size:15px">−Δ</span><span style="color:var(--muted)">night − day (points)</span></span></div></div>
+      <svg id="sv-gap" class="chart" viewBox="0 0 1000 460" role="img" aria-label="Day and night accuracy per question type"></svg>
+      <p class="cap">Values as printed in the paper's day–night gap figure. Object: object recognition, Text: text recognition, Spatial: spatial reasoning, Scene: scene sequence, Navi: navigation, Count: counting of static, NonC: non-common-sense reasoning, Action: action recognition.</p>
+    </div>
+    <div class="obs">
+      <div class="card rise" style="--d:1"><div class="big num" id="gap-ov" style="color:var(--drop)">−8.1</div><p id="gap-ov-t">points overall, from 25.5 by day to 17.4 at night.</p></div>
+      <div class="card rise" style="--d:2"><p><b>Perception suffers most.</b> Object recognition drops the most on both subsets (−19.6 and −15.5 points); navigation and counting, which lean on reasoning, drop only 2–5 points.</p></div>
+      <div class="card rise" style="--d:3"><p><b>The new types are the hardest:</b> lighting recognition, lighting dynamic and non-common-sense score below the other question types.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 DEPTH ============ -->
+<section class="slide" id="depth" data-title="Depth estimation" data-sec="Results">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Depth Estimation</h2>
+    <p class="lede">Egocentric depth on EgoNight-Synthetic, where Blender gives ground-truth depth. Most methods get worse at night.</p></div></header>
+  <div class="body two">
+    <figure class="paper rise" style="margin:0;--d:1"><img class="zoomable" src="fig/Depth_synthetic.png" alt="Depth predictions by day and by night for Depth Anything V2, StreamVGGT, DAC and UniK3D, with ground truth"></figure>
+    <div class="col">
+      <div class="ctrl ix"><div class="seg" id="dp-m" role="group" aria-label="metric"></div></div>
+      <svg id="sv-depth" class="chart" viewBox="0 0 700 380" role="img" aria-label="Day and night depth error per method"></svg>
+      <p class="cap" id="dp-cap"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 RETRIEVAL ============ -->
+<section class="slide" id="retrieval" data-title="Day–night retrieval" data-sec="Results">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Day–Night Correspondence Retrieval</h2>
+    <p class="lede">Given a night clip, find its daytime counterpart (N→D): the same place (spatial) or the same moment (temporal).</p></div></header>
+  <div class="body two">
+    <figure class="paper rise" style="margin:0;--d:1"><img class="zoomable" src="fig/SpatialRetrievalQualitative.png" alt="A night query clip and ten daytime database clips, one of which is the target"></figure>
+    <div class="col">
+      <div class="ctrl ix"><div class="seg" id="rt-m" role="group" aria-label="task"></div>
+        <div class="legend" style="margin-left:12px"><span style="color:var(--moon)"><i></i><span style="color:var(--muted)">Synthetic</span></span><span style="color:var(--sun)"><i></i><span style="color:var(--muted)">Sofia</span></span></div></div>
+      <svg id="sv-ret" class="chart" viewBox="0 0 700 380" role="img" aria-label="Retrieval scores per model"></svg>
+      <p class="cap" id="rt-cap"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 FINE-TUNING ============ -->
+<section class="slide" id="finetune" data-steps="4" data-title="Fine-tuning" data-sec="Results">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Fine-tuning</h2>
+    <p class="lede">Qwen2.5-VL-7B fine-tuned on EgoNight, accuracy (%) on night videos.</p></div></header>
+  <div class="body">
+    <div class="ft">
+      <h3>Which part to tune<span>EgoNight-Sofia + Oxford, 7:3 train / validation</span></h3>
+      <div class="vbars" id="ft-a"></div>
+      <div class="vlab" id="ft-a-l"></div>
+      <h3 style="margin-top:8px">Synthetic to real<span>train on Synthetic, test on Sofia + Oxford</span></h3>
+      <div class="vbars short" id="ft-b"></div>
+      <div class="vlab" id="ft-b-l"></div>
+    </div>
+    <div class="ins">
+      <div class="card" data-s="1"><span class="n">01</span><h3>Full fine-tuning is best</h3><p>+9.21 points over zero-shot, the best overall, though accuracy stays low.</p></div>
+      <div class="card" data-s="2"><span class="n">02</span><h3>Vision encoder tuning</h3><p>Mainly helps perception-heavy tasks, such as object and text recognition in low light.</p></div>
+      <div class="card" data-s="3"><span class="n">03</span><h3>LLM tuning</h3><p>Improves perception and reasoning: language priors matter for nighttime understanding.</p></div>
+      <div class="card" data-s="4"><span class="n">04</span><h3>Synthetic-to-real transfer</h3><p>Synthetic-only training transfers to real night video (+5.74 points), so synthetic data is useful.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 TAKE-AWAY ============ -->
+<section class="slide" id="takeaway" data-title="Take-away message" data-sec="Wrap-up">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Take-away Message</h2></div></header>
+  <div class="body">
+    <div class="col">
+      <p class="claim rise" style="--d:1">EgoNight is the <em>first comprehensive benchmark</em> for nighttime egocentric vision, addressing a critical gap between laboratory evaluations and real-world deployment conditions.</p>
+      <div class="tk">
+        <div class="row rise" style="--d:2"><span class="n">1</span><p><b>The illumination gap is real and large.</b> State-of-the-art MLLMs degrade by 25–33% when moving from day to night, revealing a fundamental limitation.</p></div>
+        <div class="row rise" style="--d:3"><span class="n">2</span><p><b>Aligned synthetic + real data is a viable strategy.</b> The strong correlation (r = 0.9359) validates using synthetic data for nighttime adaptation and evaluation.</p></div>
+        <div class="row rise" style="--d:4"><span class="n">3</span><p><b>Fine-tuning helps, but the problem is far from solved.</b> Even after fine-tuning, models achieve only ~20% accuracy, leaving substantial room for improvement.</p></div>
+      </div>
+    </div>
+    <div class="col rise" style="--d:3">
+      <h3>Future directions</h3>
+      <ul class="fut">
+        <li>Illumination-aware pretraining for egocentric models</li>
+        <li>Nighttime-specific data augmentation strategies</li>
+        <li>Cross-modal (3D + audio + vision) approaches for low-light understanding</li>
+        <li>Larger-scale real-world nighttime egocentric datasets</li>
+        <li>Further adversarial cases</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13 ACKNOWLEDGEMENT ============ -->
+<section class="slide" id="ack" data-title="Acknowledgement" data-sec="Wrap-up">
+  <header class="hd"><div class="t">
+    <h2><img src="fig/icon.png" alt="">Acknowledgement</h2></div></header>
+  <div class="body">
+    <div class="col rise" style="--d:1">
+      <h3>Funders &amp; collaborators</h3>
+      <div class="logos">
+        <div class="logo"><img src="fig/talk/logo_vivo.png" alt="vivo"></div>
+        <div class="logo"><img src="fig/talk/logo_sofia_university.jpg" alt="Sofia University St. Kliment Ohridski"></div>
+        <div class="logo"><img src="fig/talk/logo_gcp.png" alt="Google Cloud Platform"></div>
+      </div>
+    </div>
+    <div class="col rise" style="--d:2">
+      <h3>Open-source tools</h3>
+      <div class="logos">
+        <div class="logo"><img src="fig/talk/logo_llamafactory.png" alt="LLaMA-Factory"></div>
+        <div class="logo"><img src="fig/talk/logo_blender.png" alt="Blender"></div>
+        <div class="logo"><img src="fig/talk/logo_infinigen.png" alt="Infinigen"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 14 CONTACT ============ -->
+<section class="slide" id="contact" data-title="Thanks" data-sec="Wrap-up">
+  <header class="hd"><div class="t"><h2><img src="fig/icon.png" alt="">Contact</h2></div></header>
+  <div class="body">
+    <img class="ph rise" src="fig/talk/deheng.png" alt="Deheng Zhang">
+    <div class="col" style="gap:26px">
+      <p class="thanks rise" style="--d:1">Thanks!</p>
+      <p class="mail rise" style="--d:2">deheng.zhang@insait.ai</p>
+      <div class="links rise ix" style="--d:3">
+        <a href="https://arxiv.org/abs/2510.06218" target="_blank" rel="noopener">Paper</a>
+        <a href="https://github.com/insait-institute/EgoNight" target="_blank" rel="noopener">Code</a>
+        <a href="https://huggingface.co/datasets/INSAIT-Institute/EgoNight/" target="_blank" rel="noopener">Dataset</a>
+        <a href="https://openreview.net/forum?id=DKD4QbOKBN" target="_blank" rel="noopener">OpenReview</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- chrome -->
+<div id="chrome">
+  <div id="prog"></div>
+  <span id="secname"></span><span class="sp"></span>
+  <button class="btn" id="b-toc" title="O">Contents</button>
+  <button class="btn" id="b-fs" title="F">Fullscreen</button>
+  <button class="btn" id="b-prev" aria-label="Previous">←</button>
+  <span id="count" class="num" aria-live="polite">1 / 14</span>
+  <button class="btn" id="b-next" aria-label="Next">→</button>
+</div>
+<div id="toc" hidden><h3>Contents</h3><ol id="toc-list"></ol></div>
+<div id="zoom" hidden><div class="paper"><img alt=""></div></div>
+</div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const root=document.documentElement;
+const css=n=>getComputedStyle(root).getPropertyValue(n).trim();
+const C={};['sun','sun-2','moon','moon-2','drop','fg','muted','dim','line','line-2','bg','panel'].forEach(k=>C[k]=css('--'+k));
+const NS='http://www.w3.org/2000/svg';
+function E(tag,at,parent,txt){const e=document.createElementNS(NS,tag);if(at)for(const k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function tween(dur,cb,done){if(RM){cb(1);done&&done();return;}const t0=performance.now();function f(now){const t=Math.min(1,(now-t0)/dur);cb(ease(t));if(t<1)requestAnimationFrame(f);else done&&done();}requestAnimationFrame(f);}
+function segInit(el,opts,cur,onPick){el.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.textContent=o.label;b.dataset.k=o.key;b.setAttribute('aria-pressed',o.key===cur?'true':'false');
+  b.addEventListener('click',()=>{if(b.disabled)return;$$('button',el).forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));onPick(o.key);});el.appendChild(b);});}
+const fmt1=v=>v.toFixed(1), sgn=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1);
+
+/* ---------------- data (from the paper, the slides and the project page) ---------------- */
+// Night-video open-QA accuracy (%): [easy, medium, hard] per subset, and the overall score.
+const LB=[
+  {n:'GPT-4.1',c:'closed',i:'fig/chatgpt-logo-chat-gpt-icon-on-white-background-free-vector.jpg',syn:[29.30,26.87,18.87],sof:[32.04,29.35,31.69],oxf:[39.72,37.13,40.72],avg:30.93},
+  {n:'Gemini 2.5 Pro',c:'closed',i:'fig/gemini-color.png',syn:[31.05,24.81,16.51],sof:[38.24,26.81,28.87],oxf:[36.75,36.81,27.88],avg:30.60},
+  {n:'InternVL3-8B',c:'open',i:'fig/internvl.jpg',syn:[20.21,15.50,16.98],sof:[24.03,21.74,20.42],oxf:[22.90,20.85,16.36],avg:20.06},
+  {n:'Qwen2.5-VL-72B',c:'open',i:'fig/qwen-color.png',syn:[18.39,15.25,12.26],sof:[24.03,17.03,20.42],oxf:[24.81,22.80,16.36],avg:18.99},
+  {n:'GLM-4.1V-9B-Base',c:'open',i:'fig/glm.png',syn:[19.09,13.70,15.57],sof:[18.60,18.48,16.20],oxf:[17.15,22.15,18.79],avg:18.20},
+  {n:'VideoLLaMA3-7B',c:'open',i:'fig/llama.png',syn:[16.85,13.44,14.62],sof:[11.11,10.87,9.15],oxf:[12.26,10.46,9.15],avg:13.64},
+  {n:'Qwen2.5-VL-7B',c:'open',i:'fig/qwen-color.png',syn:[13.01,13.95,13.68],sof:[15.44,12.68,12.68],oxf:[13.74,13.36,12.73],avg:13.44},
+  {n:'Qwen2.5-VL-3B',c:'open',i:'fig/qwen-color.png',syn:[14.69,10.34,7.08],sof:[15.50,13.04,12.68],oxf:[17.18,11.40,12.12],avg:13.41},
+  {n:'LLaVA-NeXT-Video-7B',c:'open',i:'fig/llava.webp',syn:[6.36,11.37,1.89],sof:[13.95,9.78,14.79],oxf:[3.05,2.61,3.03],avg:7.28},
+  {n:'EgoGPT',c:'ego',i:'fig/egogpt.png',syn:[15.79,13.55,12.04],sof:[12.41,12.13,10.36],oxf:[12.37,13.58,13.68],avg:14.29}];
+// Day vs night accuracy (%) on paired QA types, read from the labels of the paper's gap figure.
+const GAP={
+  syn:{label:'EgoNight-Synthetic',t:['Object','Text','Spatial','Scene','Navi','Count','NonC','Overall'],d:[33.0,33.6,35.1,26.2,14.3,20.6,20.1,25.5],n:[13.4,24.6,23.2,20.2,12.1,15.8,16.4,17.4]},
+  sof:{label:'EgoNight-Sofia',t:['Object','Text','Spatial','Scene','Navi','Count','Action','Overall'],d:[29.5,28.4,32.3,19.3,21.4,22.3,26.5,25.5],n:[14.0,16.3,27.3,18.5,18.5,19.1,17.4,19.2]}};
+// Depth on EgoNight-Synthetic, [day, night].
+const DEPTH=[{n:'Depth Anything V2',abs:[0.297,0.302],d1:[0.249,0.237]},{n:'StreamVGGT',abs:[0.293,0.298],d1:[0.234,0.232]},
+  {n:'DAC',abs:[0.245,0.292],d1:[0.255,0.216]},{n:'UniK3D',abs:[0.224,0.253],d1:[0.280,0.254]}];
+// Night-to-day retrieval, [Synthetic, Sofia].
+const RET=[{n:'GPT-4.1',sp:[54.1,84.5],tm:[10.0,15.5]},{n:'Perception Encoder',sp:[41.6,80.9],tm:[32.9,33.4]},
+  {n:'DINOv2',sp:[28.7,74.5],tm:[33.7,33.1]},{n:'InternVL3-8B',sp:[27.7,56.3],tm:[9.9,13.3]}];
+// Stacked day-over-night videos; crop removes the pillarbox of the 4:3 real-world clips.
+const CLIPS={
+  apartment:{label:'Apartment',src:'fig/video/Apartment1_dn.mp4',poster:'fig/video/Apartment1_dn.jpg',crop:[.125,.875]},
+  cathedral:{label:'Cathedral',src:'fig/video/Sofia_dn.mp4',poster:'fig/video/Sofia_dn.jpg',crop:[.125,.875]},
+  grocery:{label:'Grocery',src:'fig/video/grocery_dn.mp4',poster:'fig/video/grocery_dn.jpg',crop:[.125,.875]},
+  syn1:{label:'Synthetic 1',src:'fig/video/synthetic1_dn.mp4',poster:'fig/video/synthetic1_dn.jpg',crop:[0,1]},
+  syn2:{label:'Synthetic 2',src:'fig/video/synthetic2_dn.mp4',poster:'fig/video/synthetic2_dn.jpg',crop:[0,1]},
+  syn3:{label:'Synthetic 3',src:'fig/video/synthetic3_dn.mp4',poster:'fig/video/synthetic3_dn.jpg',crop:[0,1]}};
+
+/* ---------------- day / night wipe ---------------- */
+function Wipe(wrap){
+  wrap.innerHTML='<canvas></canvas><video muted loop playsinline preload="none"></video><span class="tag d">DAY</span><span class="tag n">NIGHT</span><div class="bar"></div>'+
+    '<div class="knob" role="slider" tabindex="0" aria-label="Day–night divider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>';
+  const cv=$('canvas',wrap),ctx=cv.getContext('2d'),v=$('video',wrap),knob=$('.knob',wrap);
+  v.muted=true;const poster=new Image();
+  let clip=null,split=.5,auto=true,raf=0,t0=0,on=false,drag=false;
+  function load(key){clip=CLIPS[key];auto=true;t0=performance.now();poster.src=clip.poster;v.src=clip.src;if(on){const p=v.play();p&&p.catch&&p.catch(()=>{});}}
+  function draw(now){
+    if(auto&&!RM)split=.5+.34*Math.sin((now-t0)/1000*.75);
+    const src=v.readyState>=2&&v.videoWidth?v:(poster.complete&&poster.naturalWidth?poster:null);
+    if(src){
+      const sw=src.videoWidth||src.naturalWidth,sh=(src.videoHeight||src.naturalHeight)/2;
+      const x0=clip.crop[0]*sw,cw=(clip.crop[1]-clip.crop[0])*sw;
+      const W=Math.round(cw),H=Math.round(sh);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+      ctx.drawImage(src,x0,sh,cw,sh,0,0,W,H);
+      if(split>0)ctx.drawImage(src,x0,0,cw*split,sh,0,0,W*split,H);
+    }
+    wrap.style.setProperty('--x',(split*100).toFixed(2)+'%');knob.setAttribute('aria-valuenow',Math.round(split*100));
+    if(on)raf=requestAnimationFrame(draw);
+  }
+  function at(e){const r=wrap.getBoundingClientRect();split=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));auto=false;}
+  wrap.addEventListener('pointerdown',e=>{drag=true;wrap.setPointerCapture(e.pointerId);at(e);if(!on)draw(performance.now());});
+  wrap.addEventListener('pointermove',e=>{if(drag){at(e);if(!on)draw(performance.now());}});
+  wrap.addEventListener('pointerup',()=>{drag=false;});wrap.addEventListener('pointercancel',()=>{drag=false;});
+  knob.addEventListener('keydown',e=>{const k=e.key;let d=0;if(k==='ArrowLeft'||k==='ArrowDown')d=-.05;else if(k==='ArrowRight'||k==='ArrowUp')d=.05;else if(k==='Home'){split=0;auto=false;}else if(k==='End'){split=1;auto=false;}else return;
+    if(d){split=Math.max(0,Math.min(1,split+d));auto=false;}e.preventDefault();e.stopPropagation();if(!on)draw(performance.now());});
+  return{load,start(){if(on)return;on=true;if(!v.src&&clip)v.src=clip.src;const p=v.play();p&&p.catch&&p.catch(()=>{});raf=requestAnimationFrame(draw);},
+    stop(){on=false;cancelAnimationFrame(raf);v.pause();}};
+}
+
+/* ---------------- deck engine ---------------- */
+const stage=$('#stage'),vp=$('#viewport');
+const slides=$$('.slide',stage);
+let cur=0,step=0;const hooks={};
+function fit(){const s=Math.min(vp.clientWidth/1600,vp.clientHeight/900);stage.style.transform=`translate(-50%,-50%) scale(${s})`;}
+addEventListener('resize',fit);fit();
+function applySteps(el){$$('[data-s]',el).forEach(n=>n.classList.toggle('on',+n.dataset.s<=step));}
+function chrome(){
+  $('#count').textContent=`${cur+1} / ${slides.length}`;
+  const max=+slides[cur].dataset.steps||0;
+  $('#prog').style.width=((cur+(max?step/(max+1):0))/(slides.length-1)*100)+'%';
+  $('#secname').textContent='EgoNight · '+slides[cur].dataset.sec;
+}
+function countUp(el){$$('[data-count]',el).forEach(n=>{const to=+n.dataset.count;tween(1100,t=>{n.textContent=Math.round(to*t).toLocaleString('en-US');});});}
+function show(i,st){
+  i=Math.max(0,Math.min(slides.length-1,i));
+  const old=slides[cur];
+  if(i!==cur){old.classList.remove('active');hooks[old.id]?.leave?.(old);}
+  slides.forEach((s,k)=>s.classList.toggle('past',k<i));
+  const entering=!slides[i].classList.contains('active');
+  cur=i;const el=slides[cur];el.classList.add('active');
+  step=st||0;applySteps(el);
+  if(entering){hooks[el.id]?.enter?.(el);countUp(el);}
+  hooks[el.id]?.step?.(step,el);
+  chrome();
+}
+function next(){const el=slides[cur],max=+el.dataset.steps||0;if(step<max){step++;applySteps(el);hooks[el.id]?.step?.(step,el);chrome();}else if(cur<slides.length-1)show(cur+1,0);}
+function prev(){const el=slides[cur];if(step>0){step--;applySteps(el);hooks[el.id]?.step?.(step,el);chrome();}else if(cur>0){const p=slides[cur-1];show(cur-1,+p.dataset.steps||0);}}
+const zoom=$('#zoom');
+function openZoom(img){$('img',zoom).src=img.src;$('img',zoom).alt=img.alt;zoom.hidden=false;}
+function closeZoom(){zoom.hidden=true;}
+zoom.addEventListener('click',closeZoom);
+$$('.zoomable',stage).forEach(img=>img.addEventListener('click',e=>{e.stopPropagation();openZoom(img);}));
+document.addEventListener('keydown',e=>{
+  const t=e.target,tag=t.tagName;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const k=e.key;
+  if(!zoom.hidden&&(k==='Escape'||k===' '||k==='Enter'||k.startsWith('Arrow'))){closeZoom();e.preventDefault();return;}
+  if(!$('#toc').hidden&&(k==='Escape'||k==='o'||k==='O')){toggleToc(false);e.preventDefault();return;}
+  const inForm=tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA';
+  if(inForm&&(k.startsWith('Arrow')||k==='Home'||k==='End'))return;
+  if((k===' '||k==='Enter')&&(tag==='BUTTON'||tag==='A'||inForm))return;
+  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)){next();e.preventDefault();}
+  else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)){prev();e.preventDefault();}
+  else if(k==='Home'){show(0);e.preventDefault();}
+  else if(k==='End'){show(slides.length-1);e.preventDefault();}
+  else if(k==='f'||k==='F'){toggleFs();}
+  else if(k==='o'||k==='O'){toggleToc();}
+});
+stage.addEventListener('click',e=>{
+  if(e.target.closest('.ix,button,input,a,video,label,#chrome,#toc,#zoom,.wipe,.zoomable,.spot'))return;
+  if(window.getSelection&&String(getSelection()).length)return;
+  const r=stage.getBoundingClientRect();
+  if(e.clientX<r.left+r.width*0.18)prev();else next();
+});
+let sx=null,sy=null;
+stage.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||e.target.closest('.ix,.wipe,input'))return;sx=e.clientX;sy=e.clientY;});
+stage.addEventListener('pointerup',e=>{if(sx==null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}});
+$('#b-next').addEventListener('click',next);$('#b-prev').addEventListener('click',prev);
+function toggleFs(){try{if(document.fullscreenElement)document.exitFullscreen();else{const p=vp.requestFullscreen&&vp.requestFullscreen();if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+$('#b-fs').addEventListener('click',toggleFs);
+document.addEventListener('fullscreenchange',()=>setTimeout(fit,50));
+function buildToc(){const ol=$('#toc-list');ol.innerHTML='';slides.forEach((s,i)=>{const li=document.createElement('li');const b=document.createElement('button');b.type='button';
+  b.innerHTML=`<span class="n">${String(i+1).padStart(2,'0')}</span><span>${s.dataset.title}</span>`;b.addEventListener('click',()=>{toggleToc(false);show(i);});li.appendChild(b);ol.appendChild(li);});}
+function toggleToc(force){const t=$('#toc');const open=force===undefined?t.hidden:force;t.hidden=!open;if(open){const b=$$('#toc-list button')[cur];b&&b.focus();}}
+$('#b-toc').addEventListener('click',()=>toggleToc());
+buildToc();
+
+/* ================= slide hooks ================= */
+
+/* --- cover: a slow night sky, and the cathedral by day and by night --- */
+hooks.cover=(()=>{
+  const cv=$('#cv-cover'),ctx=cv.getContext('2d');let raf=0;
+  let seed=11;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
+  const stars=[];for(let i=0;i<220;i++)stars.push({x:rnd()*1600,y:rnd()*900,r:.4+rnd()*1.4,ph:rnd()*6.28,sp:.5+rnd()*1.6});
+  const wipe=Wipe($('#cover .cover-wipe'));wipe.load('cathedral');
+  function frame(now){
+    const t=now/1000;ctx.clearRect(0,0,1600,900);
+    const g=ctx.createLinearGradient(0,0,0,900);g.addColorStop(0,'rgba(20,28,58,.55)');g.addColorStop(1,'rgba(8,12,24,0)');ctx.fillStyle=g;ctx.fillRect(0,0,1600,900);
+    for(const s of stars){const a=.25+.55*(.5+.5*Math.sin(t*s.sp+s.ph));ctx.globalAlpha=a*(s.y<700?1:.4);ctx.fillStyle='#dfe6ff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.283);ctx.fill();}
+    ctx.globalAlpha=1;
+    const mg=ctx.createRadialGradient(1480,90,0,1480,90,170);mg.addColorStop(0,'rgba(201,212,255,.35)');mg.addColorStop(1,'rgba(201,212,255,0)');ctx.fillStyle=mg;ctx.fillRect(1260,0,340,300);
+    ctx.fillStyle='#e9eeff';ctx.beginPath();ctx.arc(1480,90,26,0,6.283);ctx.fill();ctx.fillStyle='#0b1124';ctx.beginPath();ctx.arc(1493,82,24,0,6.283);ctx.fill();
+    if(!RM)raf=requestAnimationFrame(frame);
+  }
+  return{enter(){cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);wipe.start();},leave(){cancelAnimationFrame(raf);wipe.stop();}};
+})();
+
+/* --- day/night alignment: pick a clip, drag the divider --- */
+hooks.aligned=(()=>{
+  const wipe=Wipe($('#al-wipe'));let key='apartment';wipe.load(key);
+  const W=$('#al-wipe');const size=k=>{const c=CLIPS[k];W.style.height=(c.crop[1]-c.crop[0]<1?540:405)+'px';};size(key);
+  segInit($('#al-clips'),Object.keys(CLIPS).map(k=>({key:k,label:CLIPS[k].label})),key,k=>{key=k;size(k);wipe.load(k);});
+  return{enter(){wipe.start();},leave(){wipe.stop();}};
+})();
+
+/* --- 12 QA types: spotlight one row of the paper's example grid --- */
+hooks.qatypes=(()=>{
+  // Cell bounds in fig/data_collection_v2.png (3721 x 1219 px), found from its white separator bands.
+  const IW=3721,IH=1219,ROWS=[[17,190],[200,375],[387,560],[570,746],[757,931],[942,1115]],COLS=[[17,1935],[1943,3721]];
+  const TYPES=['Object Recognition','Text Recognition','Spatial Reasoning','Scene Sequence','Navigation','Counting of Static',
+    'Action Recognition','Non-Common-Sense Reasoning','Lighting Recognition','Lighting Dynamic','Dynamic Detection','Counting of Dynamic'];
+  const PAIRED=[0,1,2,3,4,5,6,7],UNP=[8,9,10,11];
+  const spot=$('#qa-spot'),tabs=$('#qa-tabs');let sel=0,timer=0,manual=false;
+  const cells=TYPES.map((t,i)=>{const [y0,y1]=ROWS[i%6],[x0,x1]=COLS[i<6?0:1];const d=document.createElement('div');d.className='cell';
+    Object.assign(d.style,{left:(x0/IW*100)+'%',top:(y0/IH*100)+'%',width:((x1-x0)/IW*100)+'%',height:((y1-y0)/IH*100)+'%'});
+    d.addEventListener('click',()=>{manual=true;pick(i);});spot.appendChild(d);return d;});
+  const btns=[];
+  [['Paired (8)',PAIRED,''],['Night-only (4)',UNP,'unp']].forEach(([lab,idx,cls])=>{const row=document.createElement('div');row.className='qa-row '+cls;
+    row.innerHTML=`<span class="lbl">${lab}</span><div class="chips"></div>`;
+    idx.forEach(i=>{const b=document.createElement('button');b.type='button';b.textContent=TYPES[i];b.addEventListener('click',()=>{manual=true;pick(i);});$('.chips',row).appendChild(b);btns[i]=b;});
+    tabs.appendChild(row);});
+  function pick(i){sel=i;cells.forEach((c,k)=>c.classList.toggle('on',k===i));btns.forEach((b,k)=>b.setAttribute('aria-pressed',k===i?'true':'false'));spot.classList.toggle('unp',UNP.includes(i));}
+  pick(0);
+  return{enter(){manual=false;clearInterval(timer);if(!RM)timer=setInterval(()=>{if(!manual)pick((sel+1)%12);},2600);},leave(){clearInterval(timer);}};
+})();
+
+/* --- leaderboard: rows re-sort when the view changes --- */
+hooks.leaderboard=(()=>{
+  const lb=$('#lb'),RH=48,MAX=45;let sub='avg',dif=0;
+  lb.style.height=(LB.length*RH)+'px';
+  const rows=LB.map(m=>{const r=document.createElement('div');r.className='lb-row '+m.c;
+    r.innerHTML=`<span class="nm"><img src="${m.i}" alt="">${m.n}</span><span class="tr"><span class="fl"></span></span><span class="v"></span>`;lb.appendChild(r);return r;});
+  const ax=document.createElement('div');ax.className='lb-axis';ax.innerHTML=[0,10,20,30,40].map(v=>`<span style="left:${v/MAX*100}%">${v}</span>`).join('');lb.appendChild(ax);
+  const val=m=>sub==='avg'?m.avg:m[sub][dif];
+  function draw(grow){const order=LB.map((m,i)=>i).sort((a,b)=>val(LB[b])-val(LB[a]));
+    order.forEach((i,rank)=>{const r=rows[i];r.style.top=(rank*RH)+'px';const f=$('.fl',r);
+      if(grow){f.style.transition='none';f.style.width='0';f.getBoundingClientRect();f.style.transition='';}
+      f.style.width=(val(LB[i])/MAX*100)+'%';$('.v',r).textContent=val(LB[i]).toFixed(2);});}
+  segInit($('#lb-sub'),[{key:'avg',label:'Overall'},{key:'syn',label:'Synthetic'},{key:'sof',label:'Sofia'},{key:'oxf',label:'Oxford'}],sub,k=>{sub=k;diffState();draw();});
+  segInit($('#lb-diff'),[{key:0,label:'Easy'},{key:1,label:'Medium'},{key:2,label:'Hard'}],dif,k=>{dif=k;draw();});
+  function diffState(){$$('#lb-diff button').forEach(b=>{b.disabled=sub==='avg';});}
+  diffState();draw(false);
+  return{enter(){draw(true);}};
+})();
+
+/* --- day vs night bars per QA type --- */
+hooks.gap=(()=>{
+  const svg=$('#sv-gap');let set='syn';
+  function draw(){
+    const d=GAP[set];svg.innerHTML='';
+    const W=1000,H=460,ml=44,mr=10,mt=30,mb=92,iw=W-ml-mr,ih=H-mt-mb,MAXV=40,Y=v=>mt+ih-v/MAXV*ih;
+    const defs=E('defs',{},svg),pat=E('pattern',{id:'hatch',patternUnits:'userSpaceOnUse',width:7,height:7,patternTransform:'rotate(45)'},defs);
+    E('rect',{width:7,height:7,fill:'rgba(255,184,77,.10)'},pat);E('line',{x1:0,y1:0,x2:0,y2:7,stroke:C.sun,'stroke-width':2.4},pat);
+    const g=E('g',{class:'grid'},svg);[0,10,20,30,40].forEach(v=>{E('line',{x1:ml,x2:W-mr,y1:Y(v),y2:Y(v)},g);E('text',{x:ml-10,y:Y(v)+5,'text-anchor':'end'},svg,v);});
+    const n=d.t.length,gw=iw/n,bw=Math.min(40,gw*.36);
+    d.t.forEach((t,i)=>{
+      const cx=ml+gw*i+gw/2,last=i===n-1;
+      if(last)E('line',{x1:cx-gw/2,x2:cx-gw/2,y1:mt-10,y2:mt+ih+70,stroke:C['line-2'],'stroke-dasharray':'4 5'},svg);
+      [[d.d[i],'url(#hatch)',C.sun,-1],[d.n[i],C.moon,C.moon,1]].forEach(([v,fill,st,s],k)=>{
+        const x=cx+s*(bw/2+3)-bw/2,y=Y(v);
+        const r=E('rect',{x,y,width:bw,height:Y(0)-y,rx:4,fill,stroke:st,'stroke-width':1.6,class:'gy'},svg);r.style.animationDelay=(i*.05+k*.08)+'s';
+        E('text',{x:x+bw/2,y:y-8,'text-anchor':'middle',class:'val fadein'},svg,fmt1(v));});
+      E('text',{x:cx,y:Y(0)+28,'text-anchor':'middle',class:'lab'},svg,t);
+      const dl=d.n[i]-d.d[i];E('text',{x:cx,y:Y(0)+54,'text-anchor':'middle',class:'dl'},svg,sgn(dl));
+    });
+    const k=n-1,dd=d.n[k]-d.d[k];
+    $('#gap-ov').textContent=sgn(dd);$('#gap-ov-t').textContent=`points overall on ${d.label}, from ${fmt1(d.d[k])} by day to ${fmt1(d.n[k])} at night.`;
+  }
+  segInit($('#gap-set'),[{key:'syn',label:'EgoNight-Synthetic'},{key:'sof',label:'EgoNight-Sofia'}],set,k=>{set=k;draw();});
+  draw();
+  return{enter(){draw();}};
+})();
+
+/* --- depth: day and night as a dumbbell per method --- */
+hooks.depth=(()=>{
+  const svg=$('#sv-depth');let m='abs';
+  const M={abs:{k:'abs',lo:.20,hi:.34,ticks:[.20,.24,.28,.32],t:'AbsRel ↓ (lower is better)'},d1:{k:'d1',lo:.20,hi:.30,ticks:[.20,.225,.25,.275,.30],t:'δ1 ↑ (higher is better)'}};
+  function draw(){
+    const o=M[m];svg.innerHTML='';const W=700,H=380,ml=170,mr=30,mt=40,mb=50,iw=W-ml-mr,X=v=>ml+(v-o.lo)/(o.hi-o.lo)*iw,rh=(H-mt-mb)/DEPTH.length;
+    const g=E('g',{class:'grid'},svg);o.ticks.forEach(v=>{E('line',{x1:X(v),x2:X(v),y1:mt-14,y2:H-mb+6},g);E('text',{x:X(v),y:H-mb+28,'text-anchor':'middle'},svg,v.toFixed(m==='abs'?2:3));});
+    E('text',{x:ml,y:16,'text-anchor':'start'},svg,o.t);
+    DEPTH.forEach((d,i)=>{const y=mt+rh*i+rh/2,[a,b]=d[o.k];
+      E('text',{x:ml-16,y:y+6,'text-anchor':'end',class:'lab'},svg,d.n);
+      const ln=E('line',{x1:X(a),x2:X(b),y1:y,y2:y,stroke:C['line-2'],'stroke-width':6,'stroke-linecap':'round',class:'fadein'},svg);ln.style.animationDelay=(.1*i)+'s';
+      const c1=E('circle',{cx:X(a),cy:y,r:10,fill:C.sun,class:'fadein'},svg),c2=E('circle',{cx:X(b),cy:y,r:10,fill:C.moon,class:'fadein'},svg);
+      c1.style.animationDelay=c2.style.animationDelay=(.1*i+.15)+'s';
+      const right=Math.max(a,b),left=Math.min(a,b);
+      E('text',{x:X(left)-16,y:y-14,'text-anchor':'end',class:'val'},svg,(left===a?'day ':'night ')+left.toFixed(3));
+      E('text',{x:X(right)+16,y:y-14,'text-anchor':'start',class:'val'},svg,(right===a&&a!==b?'day ':'night ')+right.toFixed(3));
+    });
+    $('#dp-cap').textContent=m==='abs'?'Every method has a higher error at night. UniK3D is best by day and by night; DAC loses the most (0.245 → 0.292).'
+      :'δ1 drops at night for every method; UniK3D stays best (0.280 → 0.254).';
+  }
+  segInit($('#dp-m'),[{key:'abs',label:'AbsRel'},{key:'d1',label:'δ1'}],m,k=>{m=k;draw();});
+  draw();
+  return{enter(){draw();}};
+})();
+
+/* --- retrieval: grouped bars, Synthetic and Sofia --- */
+hooks.retrieval=(()=>{
+  const svg=$('#sv-ret');let m='sp';
+  const M={sp:{k:'sp',max:100,t:'Spatial N→D accuracy (%) ↑',cap:'GPT-4.1 finds the right place best (54.1 / 84.5). Sofia is easier than Synthetic for every model.'},
+    tm:{k:'tm',max:40,t:'Temporal N→D mIoU (%) ↑',cap:'For the right moment, DINOv2 and Perception Encoder lead (~33); the two MLLMs stay near 10–15.'}};
+  function draw(){
+    const o=M[m];svg.innerHTML='';const W=700,H=380,ml=170,mr=60,mt=40,mb=40,iw=W-ml-mr,X=v=>ml+v/o.max*iw,rh=(H-mt-mb)/RET.length,bh=20;
+    E('text',{x:ml,y:16},svg,o.t);
+    const g=E('g',{class:'grid'},svg);[0,.25,.5,.75,1].forEach(f=>{E('line',{x1:X(f*o.max),x2:X(f*o.max),y1:mt-10,y2:H-mb},g);E('text',{x:X(f*o.max),y:H-mb+22,'text-anchor':'middle'},svg,Math.round(f*o.max));});
+    RET.forEach((d,i)=>{const y=mt+rh*i+rh/2;E('text',{x:ml-16,y:y+6,'text-anchor':'end',class:'lab'},svg,d.n);
+      [[d[o.k][0],C.moon,-1],[d[o.k][1],C.sun,1]].forEach(([v,col,s],k)=>{const yy=y+(s<0?-bh-2:2);
+        const r=E('rect',{x:ml,y:yy,width:X(v)-ml,height:bh,rx:4,fill:col,class:'gx'},svg);r.style.animationDelay=(i*.06+k*.05)+'s';
+        E('text',{x:X(v)+8,y:yy+bh-5,class:'val'},svg,fmt1(v));});});
+    $('#rt-cap').textContent=o.cap;
+  }
+  segInit($('#rt-m'),[{key:'sp',label:'Spatial: same place'},{key:'tm',label:'Temporal: same moment'}],m,k=>{m=k;draw();});
+  draw();
+  return{enter(){draw();}};
+})();
+
+/* --- fine-tuning bars --- */
+hooks.finetune=(()=>{
+  const A=[['Zero-shot','baseline',16.40,'base'],['Vision encoder','only',20.92,''],['LLM','only',22.26,''],['Full','fine-tuning',25.61,'best']];
+  const B=[['Zero-shot','baseline',14.83,'base'],['Synthetic','fine-tuning',20.57,'best']];
+  function bars(el,lab,rows,max){el.innerHTML=rows.map(([a,b,v,c],i)=>`<div class="vb2 ${c}"><span class="v">${v.toFixed(2)}</span><span class="b" style="height:${v/max*100}%;animation-delay:${i*.12}s"></span></div>`).join('');
+    lab.innerHTML=rows.map(([a,b])=>`<div><b>${a}</b>${b}</div>`).join('');}
+  function draw(){bars($('#ft-a'),$('#ft-a-l'),A,30);bars($('#ft-b'),$('#ft-b-l'),B,30);}
+  draw();
+  return{enter(){draw();}};
+})();
+
+show(0);
+})();
+</script>
+</body>
+</html>

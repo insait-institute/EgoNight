@@ -2,366 +2,193 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>EgoNight: Towards Egocentric Vision Understanding at Night</title>
+  <meta name="description" content="EgoNight is the first benchmark for nighttime egocentric vision: day–night aligned videos and 3,658 VQA pairs across 12 question types. ICLR 2026.">
+  <meta property="og:title" content="EgoNight: Towards Egocentric Vision Understanding at Night with a Challenging Benchmark">
+  <meta property="og:description" content="Day–night aligned egocentric videos and 3,658 VQA pairs. ICLR 2026.">
+  <meta property="og:image" content="fig/teaser_v3.png">
+  <meta name="theme-color" content="#05070f">
   <link rel="icon" href="fig/icon.png" type="image/png">
-  <link rel="stylesheet" href="style.css?v=2">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="site.css?v=3">
 </head>
 <body>
-  <!-- Hero Section -->
+  <!-- Hero -->
   <header class="hero">
-    <div class="hero-content">
-      <div class="hero-title-row">
-        <img src="fig/icon.png" alt="EgoNight" class="hero-logo">
-        <h1>EgoNight</h1>
-      </div>
-      <p class="hero-subtitle">Towards Egocentric Vision Understanding at Night with a Challenging Benchmark</p>
-      <p class="hero-venues">ICLR 2026</p>
-      <div class="hero-authors">
-        <p><a href="https://dehezhang2.github.io/">Deheng Zhang</a>*, <a href="https://yuqianfu.com/">Yuqian Fu</a>*&dagger;, <a href="https://runyiyang.github.io/">Runyi Yang</a>, <a href="https://y9miao.github.io/">Yang Miao</a>, <a href="https://qiantianwen.github.io/">Tianwen Qian</a>, <a href="https://zhengxujosh.github.io/">Xu Zheng</a>,</p>
-        <p><a href="https://guoleisun.github.io/">Guolei Sun</a>, <a href="https://ajadchhatkuli.github.io/">Ajad Chhatkuli</a>, <a href="https://xuanjing-huang.github.io/">Xuanjing Huang</a>, <a href="https://fvl.fudan.edu.cn/people/yugangjiang/">Yu-Gang Jiang</a>, <a href="https://insait.ai/prof-luc-van-gool/">Luc Van Gool</a>, <a href="https://insait.ai/dr-danda-paudel/">Danda Pani Paudel</a></p>
-      </div>
-      <p class="hero-affiliation"><em>*Equal Contribution &nbsp; &nbsp; &dagger;Corresponding Author</em></p>
-      <img src="fig/institute.png" alt="Institutions" class="institute-logo">
-      <div class="links">
-        <a href="https://arxiv.org/abs/2510.06218" class="link-btn paper" target="_blank">
-          <i class="fas fa-file-alt"></i>
-          Paper
-        </a>
-        <a href="poster.html" class="link-btn poster" target="_blank">
-          <i class="fas fa-chalkboard"></i>
-          Poster
-        </a>
-        <a href="https://github.com/insait-institute/EgoNight" class="link-btn code" target="_blank">
-          <i class="fab fa-github"></i>
-          Code
-        </a>
-        <a href="https://huggingface.co/datasets/INSAIT-Institute/EgoNight/" class="link-btn benchmark" target="_blank">
-          <img src="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg" alt="Hugging Face" class="link-btn-logo" width="20" height="20"/>
-          Dataset
-        </a>
-        <a href="https://openreview.net/forum?id=DKD4QbOKBN" class="link-btn openreview" target="_blank">
-          <i class="fas fa-external-link-alt"></i>
-          OpenReview
-        </a>
-        <a href="benchmark.html" class="link-btn" style="background:#4f46e5;border:none;color:#fff;font-weight:600;" target="_blank">
-          <i class="fas fa-chart-bar"></i>
-          Benchmark Explorer
-        </a>
-      </div>
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <span class="venue">ICLR 2026</span>
+      <h1><img src="fig/icon.png" alt=""><span><span class="e">Ego</span><span class="n">Night</span></span></h1>
+      <p class="subtitle">Towards Egocentric Vision Understanding at Night with a Challenging Benchmark</p>
+      <p class="authors">
+        <a href="https://dehezhang2.github.io/">Deheng Zhang</a><sup>1*</sup>,
+        <a href="https://yuqianfu.com/">Yuqian Fu</a><sup>1*&dagger;</sup>,
+        <a href="https://runyiyang.github.io/">Runyi Yang</a><sup>1</sup>,
+        <a href="https://y9miao.github.io/">Yang Miao</a><sup>1</sup>,
+        <a href="https://qiantianwen.github.io/">Tianwen Qian</a><sup>2</sup>,
+        <a href="https://zhengxujosh.github.io/">Xu Zheng</a><sup>1,3</sup>,
+        <a href="https://guoleisun.github.io/">Guolei Sun</a><sup>4</sup>,
+        <a href="https://ajadchhatkuli.github.io/">Ajad Chhatkuli</a><sup>1</sup>,
+        <a href="https://xuanjing-huang.github.io/">Xuanjing Huang</a><sup>5</sup>,
+        <a href="https://fvl.fudan.edu.cn/people/yugangjiang/">Yu-Gang Jiang</a><sup>5</sup>,
+        <a href="https://insait.ai/prof-luc-van-gool/">Luc Van Gool</a><sup>1</sup>,
+        <a href="https://insait.ai/dr-danda-paudel/">Danda Pani Paudel</a><sup>1</sup>
+      </p>
+      <p class="affil"><sup>1</sup>INSAIT, Sofia University &nbsp; <sup>2</sup>East China Normal University &nbsp; <sup>3</sup>HKUST(GZ) &nbsp; <sup>4</sup>Nankai University &nbsp; <sup>5</sup>Fudan University<br>*Equal contribution &nbsp; &dagger;Corresponding author</p>
+      <div class="inst"><img src="fig/institute.png" alt="INSAIT, Fudan University, East China Normal University, HKUST(GZ) and Nankai University"></div>
+      <nav class="links" aria-label="Resources">
+        <a href="https://arxiv.org/abs/2510.06218" class="pill primary" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i>Paper</a>
+        <a href="https://github.com/insait-institute/EgoNight" class="pill" target="_blank" rel="noopener"><i class="fab fa-github"></i>Code</a>
+        <a href="https://huggingface.co/datasets/INSAIT-Institute/EgoNight/" class="pill" target="_blank" rel="noopener"><img src="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg" alt="" width="18" height="18">Dataset</a>
+        <a href="benchmark.html" class="pill" target="_blank" rel="noopener"><i class="fas fa-chart-bar"></i>Benchmark Explorer</a>
+        <a href="poster.html" class="pill" target="_blank" rel="noopener"><i class="fas fa-chalkboard"></i>Poster</a>
+        <a href="https://openreview.net/forum?id=DKD4QbOKBN" class="pill" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i>OpenReview</a>
+      </nav>
     </div>
   </header>
 
   <!-- Navigation -->
-  <nav class="nav">
-    <a href="#abstract">Abstract</a>
-    <a href="#video">Video</a>
-    <a href="#dataset">Dataset</a>
-    <a href="#benchmark">Benchmark</a>
-    <a href="#results">Results</a>
-    <a href="#citation">Citation</a>
-    <a href="#contact">Contact</a>
+  <nav class="nav" aria-label="Sections">
+    <div class="wrap">
+      <a class="brand" href="#top-talk"><img src="fig/icon.png" alt="">EgoNight</a>
+      <a href="#top-talk">Slides</a>
+      <a href="#abstract">Abstract</a>
+      <a href="#video">Video</a>
+      <a href="#dataset">Dataset</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="#results">Results</a>
+      <a href="#citation">Citation</a>
+      <a href="#contact">Contact</a>
+    </div>
   </nav>
 
   <main>
+    <!-- Slides -->
+    <section id="top-talk" class="section" style="padding-top:44px">
+      <div class="wrap">
+        <div class="talk"><iframe src="talk.html" title="EgoNight interactive slides" allow="fullscreen" loading="eager"></iframe></div>
+        <p class="talk-cap"><span>Interactive slides: click the right side of a slide or press <kbd>→</kbd>, <kbd>←</kbd> to go back, <kbd>O</kbd> lists the slides, <kbd>F</kbd> goes full screen.</span>
+          <a href="talk.html" target="_blank" rel="noopener">Open the slides in a new tab ↗</a></p>
+      </div>
+    </section>
+
     <!-- Abstract -->
-    <section id="abstract" class="section scroll-reveal revealed">
-      <h2>Abstract</h2>
-      <p class="tldr"><strong>TL;DR:</strong> EgoNight is the first benchmark for nighttime egocentric vision, with day–night aligned videos and 3,658 VQA pairs. SOTA MLLMs struggle to generalize from day to night.</p>
-<p>Existing egocentric vision benchmarks focus on daytime, overlooking low-light conditions common in real-world settings. We introduce <strong>EgoNight</strong>, the first benchmark for nighttime egocentric vision, centered on visual question answering (VQA). EgoNight features <strong>day–night aligned videos</strong>, combining synthetic (Blender) and real-world data to ensure aligned scenes and actions, improving annotation quality and enabling direct comparison across lighting conditions. EgoNight-VQA includes <strong>3,658 QA pairs</strong> from <strong>90 videos</strong> across <strong>12 QA types</strong>. Evaluations show significant performance drops for state-of-the-art MLLMs when moving from day to night.</p>
-      <div class="teaser">
-        <img src="fig/teaser_v3.png" alt="EgoNight Teaser" class="teaser-img" style="width: 105%; max-width: 900px;">
+    <section id="abstract" class="section">
+      <div class="wrap stack">
+        <div class="reveal">
+          <p class="kicker">Abstract</p>
+          <h2>Can multimodal LLMs see in the dark?</h2>
+        </div>
+        <p class="tldr reveal"><b>TL;DR</b> EgoNight is the first benchmark for nighttime egocentric vision, with day–night aligned videos and 3,658 VQA pairs. SOTA MLLMs struggle to generalize from day to night.</p>
+        <div class="stats reveal">
+          <div class="stat"><span class="v" data-count="3658">3,658</span><span class="k">human-verified QA pairs</span></div>
+          <div class="stat"><span class="v" data-count="12">12</span><span class="k">question types</span></div>
+          <div class="stat"><span class="v" data-count="70">70</span><span class="k">day–night aligned video pairs</span></div>
+          <div class="stat"><span class="v" data-count="3">3</span><span class="k">subsets: synthetic, Sofia, Oxford</span></div>
+        </div>
+        <div class="prose reveal">
+          <p>Existing egocentric vision benchmarks focus on daytime, overlooking low-light conditions common in real-world settings. We introduce <strong>EgoNight</strong>, the first benchmark for nighttime egocentric vision, centered on visual question answering (VQA). EgoNight features <strong>day–night aligned videos</strong>, combining synthetic (Blender) and real-world data to ensure aligned scenes and actions, improving annotation quality and enabling direct comparison across lighting conditions. EgoNight-VQA includes <strong>3,658 QA pairs</strong> from <strong>90 videos</strong> across <strong>12 QA types</strong>. Evaluations show significant performance drops for state-of-the-art MLLMs when moving from day to night.</p>
+        </div>
+        <figure class="paper reveal"><img src="fig/teaser_v3.png" alt="EgoNight overview: data sources, VQA tasks, other tasks and day/night question-answer examples" loading="lazy"></figure>
       </div>
     </section>
 
     <!-- Video -->
-    <section id="video" class="section scroll-reveal">
-      <h2>Video</h2>
-      <div class="video-container">
-        <iframe
-          src="https://www.youtube.com/embed/exv3Sx1DAyY"
-          title="EgoNight Video"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen>
-        </iframe>
+    <section id="video" class="section">
+      <div class="wrap">
+        <p class="kicker">Video</p>
+        <h2>Watch the overview</h2>
+        <div class="video reveal">
+          <iframe src="https://www.youtube.com/embed/exv3Sx1DAyY" title="EgoNight video" loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
       </div>
     </section>
 
     <!-- Dataset -->
-    <section id="dataset" class="section scroll-reveal">
-      <h2>Dataset</h2>
-      <p>EgoNight comprises two subsets with day&ndash;night aligned videos, and one subset with night-only videos:</p>
-      <div class="dataset-grid">
-        <div class="dataset-card-wrapper">
-          <div class="dataset-card">
-            <div class="dataset-card-content">
-              <img src="fig/alexander-nevsky-cathedral.png" alt="" class="dataset-icon" aria-hidden="true">
-              <h3>EgoNight-Sofia</h3>
-              <p>Real-world indoor/outdoor egocentric recordings</p>
-            </div>
-            <div class="dataset-card-expand">
-            <div class="dataset-tab-dots">
-              <button type="button" class="dataset-tab-dot active" aria-label="Overview" data-tab="0"></button>
-              <button type="button" class="dataset-tab-dot" aria-label="Day view" data-tab="1"></button>
-              <button type="button" class="dataset-tab-dot" aria-label="Night view" data-tab="2"></button>
-            </div>
-            <div class="dataset-tab-panels">
-              <div class="dataset-tab-panel active">
-                <div class="comparison-slider">
-                  <img src="fig/Apartment1_day.gif" alt="Day" class="comparison-slider-before">
-                  <div class="comparison-slider-after">
-                    <img src="fig/Apartment1_night.gif" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div>
-                </div>
-              </div>
-              <div class="dataset-tab-panel">
-                <div class="comparison-slider">
-                  <img src="fig/Sofia_day.gif" alt="Day" class="comparison-slider-before">
-                  <div class="comparison-slider-after">
-                    <img src="fig/Sofia_night.gif" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div>
-                </div>
-              </div>
-              <div class="dataset-tab-panel">
-                <div class="comparison-slider">
-                  <img src="fig/grocery_day.gif" alt="Day" class="comparison-slider-before">
-                  <div class="comparison-slider-after">
-                    <img src="fig/grocery_night.gif" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div>
-                </div>
-              </div>
-            </div>
-            </div>
-          </div>
+    <section id="dataset" class="section">
+      <div class="wrap">
+        <p class="kicker">Dataset</p>
+        <h2>Same scene, two lighting conditions</h2>
+        <p class="lead">EgoNight comprises two subsets with day&ndash;night aligned videos, and one subset with night-only videos. Drag across a clip to wipe between day and night.</p>
+        <div class="subsets" style="margin-top:28px">
+          <article class="subset reveal">
+            <div class="subset-hd"><img src="fig/alexander-nevsky-cathedral.png" alt=""><div><h3>EgoNight-Sofia</h3><p>Real-world indoor/outdoor egocentric recordings</p></div></div>
+            <div class="wipe" data-clips="Apartment1,Sofia,grocery" data-crop="0.125,0.875" role="group" aria-label="EgoNight-Sofia clip, day and night"></div>
+            <div class="dots"></div>
+          </article>
+          <article class="subset reveal">
+            <div class="subset-hd"><img src="fig/game-console.png" alt=""><div><h3>EgoNight-Synthetic</h3><p>Blender-rendered synthetic scenes with Infinigen</p></div></div>
+            <div class="wipe wide" data-clips="synthetic1,synthetic2,synthetic3" data-crop="0,1" role="group" aria-label="EgoNight-Synthetic clip, day and night"></div>
+            <div class="dots"></div>
+          </article>
+          <article class="subset reveal">
+            <div class="subset-hd"><img src="fig/oxford.png" alt=""><div><h3>EgoNight-Oxford</h3><p>Night-only video sequences from Oxford-day-and-night</p></div></div>
+            <div class="night-only" data-clips="oxford1,oxford2,oxford3"><video muted loop playsinline preload="none" poster="fig/video/oxford1_night.jpg" aria-label="EgoNight-Oxford night clip"></video><span class="tag">NIGHT</span></div>
+            <div class="dots"></div>
+          </article>
         </div>
-        <div class="dataset-card-wrapper">
-          <div class="dataset-card">
-            <div class="dataset-card-content">
-              <img src="fig/game-console.png" alt="" class="dataset-icon" aria-hidden="true">
-              <h3>EgoNight-Synthetic</h3>
-              <p>Blender-rendered synthetic scenes with Infinigen</p>
-            </div>
-            <div class="dataset-card-expand">
-            <div class="dataset-tab-dots">
-              <button type="button" class="dataset-tab-dot active" aria-label="Overview" data-tab="0"></button>
-              <button type="button" class="dataset-tab-dot" aria-label="Day view" data-tab="1"></button>
-              <button type="button" class="dataset-tab-dot" aria-label="Night view" data-tab="2"></button>
-            </div>
-            <div class="dataset-tab-panels">
-              <div class="dataset-tab-panel active">
-                <div class="comparison-slider">
-                  <img src="fig/synthetic1_day.gif" alt="Day" class="comparison-slider-before">
-                  <div class="comparison-slider-after">
-                    <img src="fig/synthetic1_night.gif" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div>
-                </div>
-              </div>
-              <div class="dataset-tab-panel">
-                <div class="comparison-slider">
-                  <img src="fig/synthetic2_day.gif" alt="Day" class="comparison-slider-before">
-                  <div class="comparison-slider-after">
-                    <img src="fig/synthetic2_night.gif" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div>
-                </div>
-              </div>
-              <div class="dataset-tab-panel">
-                <div class="comparison-slider">
-                  <img src="fig/synthetic3_day.gif" alt="Day" class="comparison-slider-before">
-                  <div class="comparison-slider-after">
-                    <img src="fig/synthetic3_night.gif" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div>
-                </div>
-              </div>
-            </div>
-            </div>
-          </div>
+        <div class="figs">
+          <figure class="reveal"><h3>Main pipeline</h3><div class="paper"><img src="fig/main_pipeline.png" alt="Main pipeline: data collection for the three subsets, then nighttime captioning, question generation, day-augmented answer synthesis and human refinement" loading="lazy"></div>
+            <figcaption class="cap">EgoNight main pipeline.</figcaption></figure>
+          <figure class="reveal"><h3>Statistics</h3><div class="paper"><img src="fig/statistics.png" alt="Dataset statistics" loading="lazy"></div>
+            <figcaption class="cap">Dataset statistics.</figcaption></figure>
         </div>
-        <div class="dataset-card-wrapper">
-          <div class="dataset-card">
-            <div class="dataset-card-content">
-              <img src="fig/oxford.png" alt="" class="dataset-icon" aria-hidden="true">
-              <h3>EgoNight-Oxford</h3>
-              <p>Night-only video sequences from Oxford-day-and-night</p>
-            </div>
-            <div class="dataset-card-expand">
-            <div class="dataset-tab-dots">
-              <button type="button" class="dataset-tab-dot active" aria-label="Overview" data-tab="0"></button>
-              <button type="button" class="dataset-tab-dot" aria-label="Day view" data-tab="1"></button>
-              <button type="button" class="dataset-tab-dot" aria-label="Night view" data-tab="2"></button>
-            </div>
-            <div class="dataset-tab-panels">
-              <div class="dataset-tab-panel active">
-                <div class="comparison-slider">
-                  <img src="fig/oxford1_night.gif" alt="Day" class="comparison-slider-before">
-                  <!-- <div class="comparison-slider-after">
-                    <img src="fig/teaser_v3.png" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div> -->
-                </div>
-              </div>
-              <div class="dataset-tab-panel">
-                <div class="comparison-slider">
-                  <img src="fig/oxford2_night.gif" alt="Day" class="comparison-slider-before">
-                  <!-- <div class="comparison-slider-after">
-                    <img src="fig/teaser_v3.png" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div> -->
-                </div>
-              </div>
-              <div class="dataset-tab-panel">
-                <div class="comparison-slider">
-                  <img src="fig/oxford3_night.gif" alt="Day" class="comparison-slider-before">
-                  <!-- <div class="comparison-slider-after">
-                    <img src="fig/teaser_v3.png" alt="Night" class="comparison-slider-img">
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="comparison-slider-input" aria-label="Compare Day and Night">
-                  <div class="comparison-slider-handle"></div> -->
-                </div>
-              </div>
-            </div>
-            </div>
-          </div>
-        </div>
-        
       </div>
-      <div class="figure-block">
-        <h4>Main Pipeline</h4>
-        <img src="fig/main_pipeline.png" alt="Main pipeline" class="wide-img">
-        <p class="caption">EgoNight main pipeline.</p>
-      </div>
-      <div class="figure-block">
-        <h4>Statistics</h4>
-        <img src="fig/statistics.png" alt="Dataset statistics" class="wide-img">
-        <p class="caption">Dataset statistics.</p>
-      </div>
-      <!-- <div class="figure-block">
-        <h4>QA Examples</h4>
-        <div class="figure-row">
-          <div>
-            <img src="fig/QA_examples_Sofia.png" alt="Sofia QA examples" class="figure-img small">
-            <p class="caption">EgoNight-Sofia</p>
-          </div>
-          <div>
-            <img src="fig/QA_examples_synthetic.png" alt="Synthetic QA examples" class="figure-img small">
-            <p class="caption">EgoNight-Synthetic</p>
-          </div>
-        </div>
-      </div> -->
-      <!-- <div class="figure-block">
-        <img src="fig/more_synthetic.png" alt="Synthetic examples" class="wide-img">
-        <p class="caption">More synthetic day&ndash;night examples.</p>
-      </div> -->
     </section>
 
     <!-- Benchmark -->
-    <section id="benchmark" class="section scroll-reveal">
-      <h2>Benchmark & Question Types</h2>
-      <p>EgoNight-VQA covers 12 question types for fine-grained evaluation:</p>
-      <div class="qa-examples-block">
-        <ul class="qa-types">
-          <li data-qa-image="fig/qa_example_object_recognition.png" class="qa-type-active" >Object Recognition</li>
-          <li data-qa-image="fig/qa_example_text_recognition.png" >Text Recognition</li>
-          <li data-qa-image="fig/qa_example_spatial_reasoning.png" >Spatial Reasoning</li>
-          <li data-qa-image="fig/qa_example_scene_sequence.png" >Scene Sequence</li>
-          <li data-qa-image="fig/qa_example_navigation.png" >Navigation</li>
-          <li data-qa-image="fig/qa_example_counting_of_static.png" >Counting of Static</li>
-          <li data-qa-image="fig/qa_example_action_recognition.png" >Action Recognition</li>
-          <li data-qa-image="fig/qa_example_non_common.png" >Non-Common-Sense Reasoning</li>
-          <li data-qa-image="fig/qa_example_light_recognition.png" >Lighting Recognition</li>
-          <li data-qa-image="fig/qa_example_light_dynamic.png" >Lighting Dynamic</li>
-          <li data-qa-image="fig/qa_example_dynamic_detection.png" >Dynamic Detection</li>
-          <li data-qa-image="fig/qa_example_counting_of_dynamic.png" >Counting of Dynamic</li>
-        </ul>
-        <div class="figure-block qa-examples-figure">
-          <h4>QA Examples <span class="qa-example-current" id="qa-example-current">(Object Recognition)</span></h4>
-          <img src="fig/qa_example_object_recognition.png" alt="Object Recognition QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_object_recognition.png">
-          <img src="fig/qa_example_text_recognition.png" alt="Text Recognition QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_text_recognition.png" hidden>
-          <img src="fig/qa_example_spatial_reasoning.png" alt="Spatial Reasoning QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_spatial_reasoning.png" hidden>
-          <img src="fig/qa_example_scene_sequence.png" alt="Scene Sequence QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_scene_sequence.png" hidden>
-          <img src="fig/qa_example_navigation.png" alt="Navigation QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_navigation.png" hidden>
-          <img src="fig/qa_example_counting_of_static.png" alt="Counting of Static QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_counting_of_static.png" hidden>
-          <img src="fig/qa_example_action_recognition.png" alt="Action Recognition QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_action_recognition.png" hidden>
-          <img src="fig/qa_example_non_common.png" alt="Non-Common-Sense Reasoning QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_non_common.png" hidden>
-          <img src="fig/qa_example_light_recognition.png" alt="Lighting Recognition QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_light_recognition.png" hidden>
-          <img src="fig/qa_example_light_dynamic.png" alt="Lighting Dynamic QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_light_dynamic.png" hidden>
-          <img src="fig/qa_example_dynamic_detection.png" alt="Dynamic Detection QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_dynamic_detection.png" hidden>
-          <img src="fig/qa_example_counting_of_dynamic.png" alt="Counting of Dynamic QA Example" class="wide-img qa-example-img" data-qa-image="fig/qa_example_counting_of_dynamic.png" hidden>
-          <img src="fig/qa_example_annotation.png" alt="QA annotation" class="wide-img qa-example-annotation">
-          <p class="caption">QA Examples — hover a question type above to view</p>
+    <section id="benchmark" class="section">
+      <div class="wrap">
+        <p class="kicker">Benchmark</p>
+        <h2>Benchmark &amp; question types</h2>
+        <p class="lead">EgoNight-VQA covers 12 question types for fine-grained evaluation. Paired types ask the same question on the day and the night video; night-only types are specific to the night or impractical to pair.</p>
+        <div class="qa" style="margin-top:26px">
+          <div class="qa-group" data-group="paired"><span class="lbl">Paired (8)</span></div>
+          <div class="qa-group unp" data-group="unpaired"><span class="lbl">Night-only (4)</span></div>
+          <figure class="qa-view reveal">
+            <h3>QA example <span id="qa-current">Object Recognition</span></h3>
+            <div class="paper"><img id="qa-img" src="fig/qa_example_object_recognition.png" alt="Object Recognition QA example"></div>
+            <img class="qa-legend" src="fig/qa_example_annotation.png" alt="Legend: day–night aligned QA types, night-only QA types, uses the whole video, highlight for better visualization, daytime reference image" loading="lazy" style="background:#fff;border-radius:8px;padding:4px">
+          </figure>
         </div>
+        <details class="aux">
+          <summary><h3>Auxiliary tasks</h3><span>Depth estimation &amp; day–night retrieval</span></summary>
+          <div class="in">
+            <p class="prose">Beyond VQA, EgoNight introduces two auxiliary tasks: <strong>egocentric depth estimation at night</strong> and <strong>day&ndash;night correspondence retrieval</strong> (evaluated on EgoNight-Synthetic only for depth, with ground-truth available from Blender-rendered scenes).</p>
+            <div class="two">
+              <figure><h3 style="margin-bottom:8px">Depth estimation</h3>
+                <p class="prose" style="margin-bottom:14px">We estimate scene geometry from monocular egocentric frames by predicting depth and inpainting regions occluded by the wearer, yielding a complete background depth map.</p>
+                <div class="paper"><img src="fig/Depth_synthetic.png" alt="Synthetic depth estimation" loading="lazy"></div>
+                <figcaption class="cap">Egocentric depth estimation at night on EgoNight-Synthetic.</figcaption></figure>
+              <figure><h3 style="margin-bottom:8px">Retrieval (spatial &amp; temporal)</h3>
+                <p class="prose" style="margin-bottom:14px">We perform cross-condition (day&ndash;night) retrieval using features robust to illumination changes: <strong>spatial retrieval</strong> matches frames from the same location, while <strong>temporal retrieval</strong> aligns frames corresponding to the same moment in time.</p>
+                <div class="paper"><img src="fig/SpatialRetrievalQualitative.png" alt="Spatial retrieval" loading="lazy"></div>
+                <figcaption class="cap">Day&ndash;night correspondence retrieval qualitative results.</figcaption></figure>
+            </div>
+          </div>
+        </details>
       </div>
-      <details class="collapsible-block figure-block">
-        <summary class="collapsible-summary">
-          <span class="collapsible-title-row">
-            <span class="collapsible-arrow">▶</span>
-            <h4>Auxiliary Tasks</h4>
-          </span>
-          <span class="collapsible-hint">Depth Estimation &amp; Day–night Retrieval — click to expand</span>
-        </summary>
-        <div class="collapsible-content">
-          <p>
-            Beyond VQA, EgoNight introduces two auxiliary tasks: <strong>egocentric depth estimation at night</strong> and <strong>day&ndash;night correspondence retrieval</strong> (evaluated on EgoNight-Synthetic only for depth, with ground-truth available from Blender-rendered scenes).
-          </p>
-
-          <h4 style="margin-top: 2rem;">Depth Estimation</h4>
-          <p>
-            We estimate scene geometry from monocular egocentric frames by predicting depth and inpainting regions occluded by the wearer, yielding a complete background depth map.
-          </p>
-          <div class="figure-row">
-            <div class="figure-col">
-              <img src="fig/Depth_synthetic.png" alt="Synthetic depth estimation" class="figure-img">
-              <p class="caption">Egocentric depth estimation at night on EgoNight-Synthetic.</p>
-            </div>
-          </div>
-
-          <h4 style="margin-top: 2rem;">Retrieval (Spatial &amp; Temporal)</h4>
-          <p>
-            We perform cross-condition (day&ndash;night) retrieval using features robust to illumination changes: <strong>spatial retrieval</strong> matches frames from the same location, while <strong>temporal retrieval</strong> aligns frames corresponding to the same moment in time.
-          </p>
-          <div class="figure-row">
-            <div class="figure-col">
-              <img src="fig/SpatialRetrievalQualitative.png" alt="Spatial retrieval" class="figure-img">
-              <p class="caption">Day&ndash;night correspondence retrieval qualitative results.</p>
-            </div>
-          </div>
-        </div>
-      </details>
     </section>
 
     <!-- Results -->
-    <section id="results" class="section section--wide scroll-reveal">
-      <h2>Results</h2>
-      <p>State-of-the-art MLLMs show substantial performance drops when transferring from day to night, underscoring the challenges of reasoning under low-light conditions.</p>
-      
-      <div style="text-align:center;margin-bottom:1rem">
-        <a href="benchmark.html" class="btn" target="_blank" style="display:inline-flex;align-items:center;gap:8px;">
-          <i class="fas fa-chart-bar"></i> Explore Results Interactively
-        </a>
-      </div>
-      <div class="table-card scroll-animate">
-        <div class="table-header">
-          <h3 style="font-size: 2rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"><img src="fig/icon.png" alt="" class="leaderboard-logo" aria-hidden="true">Leaderboard on EgoNight-VQA</h3>
-          <p class="table-caption" style="text-align:center;">Accuracies (%) of OpenQA results across three datasets and three difficulty levels.</p>
-        </div>
-        <div class="table-wrapper">
-          <table class="results-table">
+    <section id="results" class="section">
+      <div class="wrap">
+        <p class="kicker">Results</p>
+        <h2>Every model loses the light</h2>
+        <p class="lead">State-of-the-art MLLMs show substantial performance drops when transferring from day to night, underscoring the challenges of reasoning under low-light conditions.</p>
+        <div class="board reveal">
+          <div class="board-hd">
+            <h3><img src="fig/icon.png" alt="">Leaderboard on EgoNight-VQA</h3>
+            <p>Accuracies (%) of OpenQA results across three datasets and three difficulty levels.</p>
+            <div class="legend"><span><i style="background:var(--closed)"></i>closed-source</span><span><i style="background:var(--open)"></i>open-source</span><span><i style="background:var(--ego)"></i>egocentric</span></div>
+          </div>
+          <div class="table-scroll">
+<table class="results-table">
             <colgroup>
               <col class="col-models">
               <col class="col-easy">
@@ -528,128 +355,45 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
-      </div>
-
-      <div class="figure-block">
-        <h4>Day&ndash;Night Performance Gap</h4>
-        <img src="fig/new_gap.png" alt="Performance gap" class="wide-img">
+        <div class="btn-row"><a href="benchmark.html" class="pill primary" target="_blank" rel="noopener"><i class="fas fa-chart-bar"></i>Explore results interactively</a></div>
+        <figure class="reveal" style="margin-top:40px"><h3 style="margin-bottom:14px">Day&ndash;night performance gap</h3>
+          <div class="paper"><img src="fig/new_gap.png" alt="Day–night performance gap on paired QA types, and performance comparison on all QA types" loading="lazy"></div></figure>
       </div>
     </section>
 
     <!-- Citation -->
-    <section id="citation" class="section scroll-reveal">
-      <h2>Citation</h2>
-      <pre class="bibtex"><code>@inproceedings{zhang2026egonight,
+    <section id="citation" class="section">
+      <div class="wrap">
+        <p class="kicker">Citation</p>
+        <h2>BibTeX</h2>
+        <div class="bib"><button type="button" id="bib-copy">Copy</button><pre><code id="bib">@inproceedings{zhang2026egonight,
   title={EgoNight: Towards Egocentric Vision Understanding at Night with a Challenging Benchmark},
   author={Zhang, Deheng and Fu, Yuqian and Yang, Runyi and Miao, Yang and Qian, Tianwen and Zheng, Xu and Sun, Guolei and Chhatkuli, Ajad and Huang, Xuanjing and Jiang, Yu-Gang and Van Gool, Luc and Paudel, Danda Pani},
   booktitle={International Conference on Learning Representations (ICLR)},
   year={2026}
-}</code></pre>
+}</code></pre></div>
+      </div>
     </section>
 
     <!-- Contact -->
-    <section id="contact" class="section scroll-reveal">
-      <h2>Contact</h2>
-      <p>For questions and collaboration, please reach out:</p>
-      <div class="contact-grid">
-        <div class="contact-card">
-          <img src="https://dehezhang2.github.io/images/profile.png" alt="Deheng Zhang" class="contact-photo">
-          <div class="contact-info">
-            <strong><a href="https://dehezhang2.github.io/">Deheng Zhang</a></strong>
-            <p><a href="mailto:deheng.zhang@insait.ai">deheng.zhang@insait.ai</a></p>
-          </div>
-        </div>
-        <div class="contact-card">
-          <img src="https://yuqianfu.com/images/profile.png" alt="Yuqian Fu" class="contact-photo">
-          <div class="contact-info">
-            <strong><a href="https://yuqianfu.com/">Yuqian Fu</a></strong>
-            <p><a href="mailto:yuqian.fu.ai@gmail.com">yuqian.fu.ai@gmail.com</a></p>
-          </div>
+    <section id="contact" class="section">
+      <div class="wrap">
+        <p class="kicker">Contact</p>
+        <h2>Get in touch</h2>
+        <p class="lead" style="margin-bottom:24px">For questions and collaboration, please reach out:</p>
+        <div class="contacts">
+          <div class="contact"><img src="https://dehezhang2.github.io/images/profile.png" alt="Deheng Zhang" loading="lazy">
+            <div><strong><a href="https://dehezhang2.github.io/">Deheng Zhang</a></strong><span><a href="mailto:deheng.zhang@insait.ai">deheng.zhang@insait.ai</a></span></div></div>
+          <div class="contact"><img src="https://yuqianfu.com/images/profile.png" alt="Yuqian Fu" loading="lazy">
+            <div><strong><a href="https://yuqianfu.com/">Yuqian Fu</a></strong><span><a href="mailto:yuqian.fu.ai@gmail.com">yuqian.fu.ai@gmail.com</a></span></div></div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    <p>&copy; 2026 EgoNight. ICLR 2026.</p>
-  </footer>
-  <script>
-    (function() {
-      // QA examples: hover to show corresponding image
-      (function() {
-        var qaItems = document.querySelectorAll('.qa-types li[data-qa-image]');
-        var firstLi = qaItems[0];
-        function setQaExample(li) {
-          var qaCurrent = document.getElementById('qa-example-current');
-          var qaImgs = document.querySelectorAll('.qa-examples-figure .qa-example-img');
-          if (!li || !qaImgs.length) return;
-          var src = li.getAttribute('data-qa-image');
-          var label = li.textContent.trim();
-          qaImgs.forEach(function(img) {
-            if (img.getAttribute('data-qa-image') === src) {
-              img.removeAttribute('hidden');
-            } else {
-              img.setAttribute('hidden', '');
-            }
-          });
-          if (qaCurrent) qaCurrent.textContent = '(' + label + ')';
-          qaItems.forEach(function(item) { item.classList.remove('qa-type-active'); });
-          li.classList.add('qa-type-active');
-        }
-        qaItems.forEach(function(li) {
-          li.addEventListener('mouseenter', function() { setQaExample(li); });
-        });
-        document.querySelector('.qa-types').addEventListener('mouseleave', function() {
-          if (firstLi) setQaExample(firstLi);
-        });
-      })();
-
-      var reveals = document.querySelectorAll('.scroll-reveal');
-      var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('revealed');
-          }
-        });
-      }, { rootMargin: '0px 0px -60px 0px', threshold: 0.1 });
-      reveals.forEach(function(el) { observer.observe(el); });
-
-      // Table scroll animation
-      var animates = document.querySelectorAll('.scroll-animate');
-      var animateObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      }, { rootMargin: '0px 0px -100px 0px', threshold: 0.1 });
-      animates.forEach(function(el) { animateObserver.observe(el); });
-
-      // Dataset card tab dots
-      document.querySelectorAll('.dataset-card').forEach(function(card) {
-        var dots = card.querySelectorAll('.dataset-tab-dot');
-        var panels = card.querySelectorAll('.dataset-tab-panel');
-        dots.forEach(function(dot, i) {
-          dot.addEventListener('click', function() {
-            dots.forEach(function(d) { d.classList.remove('active'); });
-            panels.forEach(function(p) { p.classList.remove('active'); });
-            dot.classList.add('active');
-            if (panels[i]) panels[i].classList.add('active');
-          });
-        });
-      });
-
-      // Comparison slider
-      document.querySelectorAll('.comparison-slider').forEach(function(slider) {
-        var input = slider.querySelector('.comparison-slider-input');
-        function updateSlider() {
-          slider.style.setProperty('--slider-pos', input.value + '%');
-        }
-        input.addEventListener('input', updateSlider);
-      });
-
-    })();
-  </script>
+  <footer><div class="wrap">&copy; 2026 EgoNight. ICLR 2026.</div></footer>
+  <script src="site.js?v=3"></script>
 </body>
 </html>
