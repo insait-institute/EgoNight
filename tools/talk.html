@@ -284,6 +284,17 @@ table.glance td.src{color:var(--muted);font-size:16px}
 .links{display:flex;flex-wrap:wrap;gap:12px}
 .links a{font:500 17px/1 var(--f-body);color:var(--fg);text-decoration:none;background:var(--panel);border:1px solid var(--line-2);border-radius:999px;padding:12px 18px}
 .links a:hover{border-color:var(--moon)}
+/* closing slide: back to the speaker's introduction deck */
+#intro-back .body{display:flex;align-items:center;justify-content:center}
+.back-card{display:grid;grid-template-columns:230px minmax(0,1fr);gap:44px;align-items:center;max-width:1200px;padding:38px 46px;border-radius:24px;
+  background:var(--panel);border:1px solid var(--line-2);color:var(--fg);text-decoration:none;transition:border-color .25s, box-shadow .25s}
+.back-card:hover{border-color:var(--moon);box-shadow:0 0 48px rgba(155,176,255,.16)}
+.back-card img{width:230px;height:230px;border-radius:50%;object-fit:cover;display:block;max-width:none;box-shadow:0 0 0 6px rgba(155,176,255,.18)}
+.bk-txt{display:flex;flex-direction:column;gap:16px;min-width:0}
+.bk-k{font:500 16px var(--f-mono);color:var(--dim)}
+.bk-h{font:800 68px/1 var(--f-display);letter-spacing:-.02em;background:linear-gradient(90deg,var(--sun-2),var(--moon-2));-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
+.bk-d{font-size:22px;line-height:1.55;color:var(--muted)}
+.bk-u{font:500 18px var(--f-mono);color:var(--moon)}
 
 @media (prefers-reduced-motion: reduce){
   .slide,.slide.active{transition:none}
@@ -569,6 +580,22 @@ table.glance td.src{color:var(--muted);font-size:16px}
   </div>
 </section>
 
+<!-- ============ 15 BACK TO INTRO ============ -->
+<section class="slide" id="intro-back" data-title="Back to my introduction" data-sec="Wrap-up">
+  <header class="hd"><div class="t"><h2><img src="fig/icon.png" alt="">More about me</h2></div></header>
+  <div class="body">
+    <a class="back-card rise" style="--d:1" href="https://dehezhang2.github.io/intro.html#s2" target="_top">
+      <img src="fig/talk/deheng.png" alt="Deheng Zhang">
+      <span class="bk-txt">
+        <span class="bk-k">Deheng Zhang · introduction slides</span>
+        <span class="bk-h">↩ Back to my introduction</span>
+        <span class="bk-d">EgoNight is one of the two first-author projects on slide 2, next to ConeGaussian. The deck goes on to StateSpaceDiffuser and where I want to take world models next.</span>
+        <span class="bk-u">dehezhang2.github.io/intro.html</span>
+      </span>
+    </a>
+  </div>
+</section>
+
 <!-- chrome -->
 <div id="chrome">
   <div id="prog"></div>
@@ -576,7 +603,7 @@ table.glance td.src{color:var(--muted);font-size:16px}
   <button class="btn" id="b-toc" title="O">Contents</button>
   <button class="btn" id="b-fs" title="F">Fullscreen</button>
   <button class="btn" id="b-prev" aria-label="Previous">←</button>
-  <span id="count" class="num" aria-live="polite">1 / 14</span>
+  <span id="count" class="num" aria-live="polite">1 / 15</span>
   <button class="btn" id="b-next" aria-label="Next">→</button>
 </div>
 <div id="toc" hidden><h3>Contents</h3><ol id="toc-list"></ol></div>
